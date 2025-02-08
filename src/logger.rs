@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug)]
@@ -26,6 +27,11 @@ impl Logger {
     pub fn log(level: LogLevel, message: &str) {
         let log_message = Self::build_log_message(level, message);
         println!("{}", log_message);
+    }
+
+    pub fn writer<W: Write>(level: LogLevel, message: &str, writer: &mut W) {
+        let log_message = Self::build_log_message(level, message);
+        let _ = writer.write_all(log_message.as_bytes()); // ignoring errors for simplicity
     }
 
     fn build_log_message(level: LogLevel, message: &str) -> String {
