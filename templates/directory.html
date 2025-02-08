@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Directory Listing</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            :root {
+                --bg-color: #ffffff;
+                --text-color: #333333;
+                --secondary-text-color: #666666;
+                --link-color: #0366d6;
+                --hover-bg-color: #f6f8fa;
+                --border-color: #eee;
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #1a1a1a;
+                --text-color: #ffffff;
+                --secondary-text-color: #cccccc;
+                --link-color: #58a6ff;
+                --hover-bg-color: #2d2d2d;
+                --border-color: #333333;
+            }
+
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 20px auto;
+                padding: 0 20px;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            .header {
+                padding-top: 10px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            h1 {
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            ul {
+                list-style: none;
+                padding: 0;
+            }
+
+            li {
+                margin: 5px 0;
+            }
+
+            a {
+                text-decoration: none;
+                color: var(--link-color);
+                display: block;
+                padding: 5px;
+            }
+
+            a:hover {
+                background-color: var(--hover-bg-color);
+                border-radius: 3px;
+            }
+
+            .directory {
+                font-weight: bold;
+            }
+
+            .empty-dir {
+                text-align: center;
+                padding: 50px 0px;
+                font-size: 1.5em;
+            }
+
+            .empty-dir > em {
+                color: var(--secondary-text-color);
+                font-style: italic;
+            }
+
+            .theme-toggle {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 8px 12px;
+                background-color: var(--text-color);
+                color: var(--bg-color);
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+
+            .theme-toggle:hover {
+                opacity: 0.9;
+            }
+        </style>
+        <script>
+            function toggleTheme() {
+                const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                document.querySelector('.theme-toggle').textContent = `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`;
+            }
+
+            function getPreferredTheme() {
+                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                return localStorage.getItem('theme') || systemTheme;
+            }
+
+            function updateTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                document.querySelector('.theme-toggle')?.setAttribute('data-theme', theme);
+                document.querySelector('.theme-toggle').textContent = `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`;
+            }
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    updateTheme(newTheme);
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const theme = getPreferredTheme();
+                document.documentElement.setAttribute('data-theme', theme);
+                const button = document.createElement('button');
+                button.className = 'theme-toggle';
+                button.textContent = `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`;
+                button.onclick = toggleTheme;
+                document.body.appendChild(button);
+            });
+        </script>
+    </head>
+    <body>
+        <header class="header">
+            <h1>Directory Listing</h1>
+            <sub>Folder: {{folder}}</sub>
+        </header>
+        <ul>
+            {{directory_content}}
+        </ul>
+    </body>
+</html>
