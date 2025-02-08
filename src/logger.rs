@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 #[derive(Debug)]
 #[allow(dead_code)]
 pub enum LogLevel {
@@ -22,7 +24,14 @@ pub struct Logger;
 
 impl Logger {
     pub fn log(level: LogLevel, message: &str) {
+        let at = Logger::current_timestamp();
         let level_str = LogLevel::from(level).as_str();
-        println!("[{}] {}", level_str, message);
+        println!("{} [{}] {}", at, level_str, message);
+    }
+
+    fn current_timestamp() -> u64 {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH);
+        let timestamp = now.unwrap().as_secs();
+        return timestamp;
     }
 }
