@@ -27,6 +27,11 @@ impl Templates {
 
         for (key, value) in params {
             let placeholder = "{{".to_string() + &key + "}}";
+
+            if value.is_empty() {
+                continue;
+            }
+
             content = content.replace(&placeholder, &value);
         }
 
