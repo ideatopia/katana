@@ -26,4 +26,8 @@ impl Katana {
     fn show_banner(&self) {
         println!("{}", self.templates.banner);
     }
+
+    fn server_address(&self) -> String {
+        format!("http://{}:{}", self.config.host, self.config.port)
+    }
 }
