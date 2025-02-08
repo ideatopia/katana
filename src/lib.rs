@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::logger::{Logger, LogLevel};
 use crate::templates::Templates;
 
 pub mod config;
@@ -21,6 +22,7 @@ impl Katana {
 
     pub fn start(&self) {
         Self::show_banner(self);
+        Logger::log(LogLevel::INFO, format!("Server running on {}", self.server_address()).as_str());
     }
 
     fn show_banner(&self) {
