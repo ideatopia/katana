@@ -24,9 +24,15 @@ pub struct Logger;
 
 impl Logger {
     pub fn log(level: LogLevel, message: &str) {
-        let at = Logger::current_datetime();
-        let level_str = LogLevel::from(level).as_str();
-        println!("[{}] [{}] {}", at, level_str, message);
+        let log_message = Self::build_log_message(level, message);
+        println!("{}", log_message);
+    }
+
+    fn build_log_message(level: LogLevel, message: &str) -> String {
+        let at = Self::current_datetime();
+        let level_str = level.as_str();
+        let log_message = format!("[{}] [{}] {}", at, level_str, message);
+        return log_message;
     }
 
     fn current_timestamp() -> u64 {
