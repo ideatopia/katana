@@ -1,3 +1,6 @@
+use katana::Katana;
+
 fn main() {
-    println!("Hello, world!");
+    let katana: Katana = Katana::new();
+    katana.start();
 }
