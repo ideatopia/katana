@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{{status_code}} {{status_text}}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            :root {
+                --bg-color: #ffffff;
+                --text-color: #333333;
+                --secondary-text-color: #666666;
+                --link-color: #0366d6;
+                --hover-bg-color: #f6f8fa;
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #1a1a1a;
+                --text-color: #ffffff;
+                --secondary-text-color: #cccccc;
+                --link-color: #58a6ff;
+                --hover-bg-color: #2d2d2d;
+            }
+
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 20px auto;
+                padding: 0 20px;
+                text-align: center;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            h1 {
+                color: var(--text-color);
+                font-size: 48px;
+                margin: 100px 0 20px;
+            }
+
+            p {
+                color: var(--secondary-text-color);
+                font-size: 18px;
+                margin-bottom: 40px;
+            }
+
+            a {
+                color: var(--link-color);
+                text-decoration: none;
+            }
+
+            a:hover {
+                text-decoration: underline;
+            }
+
+            .theme-toggle {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 8px 12px;
+                background-color: var(--text-color);
+                color: var(--bg-color);
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+
+            .theme-toggle:hover {
+                opacity: 0.9;
+            }
+        </style>
+        <script>
+            function toggleTheme() {
+                const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                document.querySelector('.theme-toggle').textContent = `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`;
+            }
+
+            function getPreferredTheme() {
+                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                return localStorage.getItem('theme') || systemTheme;
+            }
+
+            function updateTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                document.querySelector('.theme-toggle')?.setAttribute('data-theme', theme);
+                document.querySelector('.theme-toggle').textContent = `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`;
+            }
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    updateTheme(newTheme);
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const theme = getPreferredTheme();
+                document.documentElement.setAttribute('data-theme', theme);
+                const button = document.createElement('button');
+                button.className = 'theme-toggle';
+                button.textContent = `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`;
+                button.onclick = toggleTheme;
+                document.body.appendChild(button);
+            });
+        </script>
+    </head>
+    <body>
+        <h1>{{status_code}} {{status_text}}</h1>
+        <p>{{error_message}}</p>
+        <a href="/">Go back to home</a>
+    </body>
+</html>
