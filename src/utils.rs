@@ -11,7 +11,6 @@ impl Utils {
             for entry in Self::collect_entries(entries) {
                 if let Ok(metadata) = entry.metadata() {
                     if let Some(name) = entry.file_name().to_str() {
-                        println!("c_name {}, validity {}", name, Self::is_valid_entry(name));
                         if Self::is_valid_entry(name) {
                             let mut entry_path = entry.path().to_string_lossy().replace('\\', "/");
                             let entry_type = if metadata.is_dir() { "directory" } else { "file" };
@@ -32,7 +31,7 @@ impl Utils {
     }
 
     pub fn is_valid_entry(name: &str) -> bool {
-        !name.starts_with('.') || name != ".well-known"
+        !name.starts_with('.')
     }
 
     pub fn normalize_path(path: PathBuf) -> PathBuf {
