@@ -18,6 +18,8 @@ impl HttpVersion {
 }
 
 #[derive(Debug)]
+#[derive(Copy)]
+#[derive(Clone)]
 pub enum HttpStatus {
     // Informational responses (100–199)
     Continue = 100,
@@ -92,7 +94,11 @@ pub enum HttpStatus {
 }
 
 impl HttpStatus {
-    pub fn description(&self) -> &str {
+    pub fn to_code(&self) -> u16 {
+        *self as u16
+    }
+
+    pub fn to_message(&self) -> &str {
         match self {
             // Informational responses (100–199)
             HttpStatus::Continue => "Continue",
