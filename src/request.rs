@@ -1,11 +1,12 @@
 use std::io;
 use std::io::BufRead;
 use std::net::TcpStream;
+use crate::http::HttpVersion;
 
 #[derive(Debug)]
 #[derive(Clone)]
 pub struct Request {
-    pub version: String,
+    pub version: HttpVersion,
     pub domain: String,
     pub path: String,
     pub method: String,
@@ -30,7 +31,7 @@ impl Request {
         let method = parts[0].to_string();
         let raw_path = parts[1];
         let mut path = Self::decode_url(raw_path);
-        let version = parts[2].replace("HTTP/", "");
+        let version = HttpVersion::from_str(&parts[2].replace("HTTP/", "")).unwrap();
 
         let mut domain = String::new();
         let mut queries = Vec::new();
@@ -119,10 +120,10 @@ impl Request {
 
         // format the status line
         result.push_str(&format!(
-            "{} {} HTTP/{}\r\n",
+            "{} {} {}\r\n",
             self.method,
             self.path,
-            self.version
+            self.version.as_str()
         ));
 
         // add query parameters as part of the URL

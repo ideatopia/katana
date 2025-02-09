@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HttpVersion {
     Http10,
     Http11,
@@ -13,6 +13,16 @@ impl HttpVersion {
             HttpVersion::Http11 => "HTTP/1.1",
             HttpVersion::Http20 => "HTTP/2.0",
             HttpVersion::Http30 => "HTTP/3.0",
+        }
+    }
+
+    pub fn from_str(version_str: &str) -> Option<HttpVersion> {
+        match version_str {
+            "1.0" => Some(HttpVersion::Http10),
+            "1.1" => Some(HttpVersion::Http11),
+            "2.0" => Some(HttpVersion::Http20),
+            "3.0" => Some(HttpVersion::Http30),
+            _ => None, // none for unsupported version
         }
     }
 }
