@@ -3,6 +3,7 @@ use std::io::Read;
 use std::path::PathBuf;
 use crate::request::Request;
 use crate::http::{HttpVersion, HttpStatus};
+use crate::utils::Utils;
 
 #[derive(Debug)]
 pub struct Response {
