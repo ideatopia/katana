@@ -85,6 +85,11 @@ impl Response {
 
         relative_path.insert_str(0, "/"); // append / to navigate easily to parent folder
 
+        if relative_path.contains(".well-known") {
+            self.serve_error_response(HttpStatus::NotFound);
+            return;
+        }
+
         let entries = Utils::walk_dir(&path);
         let mut folders = Vec::new();
         let mut files = Vec::new();
