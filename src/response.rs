@@ -52,7 +52,7 @@ impl Response {
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 
         if Utils::is_valid_entry(&name) {
-            self.serve_error_response(HttpStatus::NotFound);
+            self.serve_error_response(HttpStatus::Forbidden);
             return;
         }
 
@@ -86,7 +86,7 @@ impl Response {
         relative_path.insert_str(0, "/"); // append / to navigate easily to parent folder
 
         if relative_path.contains(".well-known") {
-            self.serve_error_response(HttpStatus::NotFound);
+            self.serve_error_response(HttpStatus::Forbidden);
             return;
         }
 
