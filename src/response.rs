@@ -51,7 +51,8 @@ impl Response {
     fn serve_file(&mut self, path: PathBuf) {
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 
-        if Utils::is_valid_entry(&name) {
+        // do not serve files starting with dot "." except those with ".well-known" in the name
+        if name.starts_with(".") && name != ".well-known" {
             self.serve_error_response(HttpStatus::Forbidden);
             return;
         }
