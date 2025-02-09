@@ -1,6 +1,7 @@
 use std::env::args;
 use std::path::PathBuf;
 
+#[derive(Debug)]
 pub struct Config {
     pub host: String,
     pub port: u16,
