@@ -74,7 +74,48 @@ impl Response {
     }
 
     fn serve_directory(&mut self, path: PathBuf) {
-        self.body = format!("<html><body><h1>Directory listing for {}</h1></body></html>", path.display());
+        let mut listing_html = String::new();
+
+        let root_dir = "public";
+
+        let mut relative_path = match path.strip_prefix(&root_dir) {
+            Ok(relative) => relative.to_string_lossy().to_string(),
+            Err(_) => String::from("/"), // fallback in case of error
+        };
+
+        relative_path.insert_str(0, "/"); // append / to navigate easily to parent folder
+
+        let entries = Utils::walk_dir(&path);
+        let mut folders = Vec::new();
+        let mut files = Vec::new();
+
+        for (entry_type, entry_name, entry_path) in &entries {
+            if entry_type == "directory" {
+                folders.push((entry_name, entry_path));
+            } else {
+                files.push((entry_name, entry_path));
+            }
+        }
+
+        if relative_path != "/" {
+            listing_html.push_str("<li><a href='../'>..</a></li>");
+        }
+
+        if entries.len() == 0{
+            listing_html.push_str("<li><b>Empty Folder</b></li>");
+        }
+
+        for (entry_name, entry_path) in folders {
+            let li_href = entry_path.strip_prefix(root_dir).unwrap();
+            listing_html.push_str(&format!("<li><a href='{}'>{}</a></li>", li_href, entry_name));
+        }
+
+        for (entry_name, entry_path) in files {
+            let li_href = entry_path.strip_prefix(root_dir).unwrap();
+            listing_html.push_str(&format!("<li><a href='{}'>{}</a></li>", li_href, entry_name));
+        }
+
+        self.body = format!("<html><body><h1>Directory listing for {}</h1><ul>{}</ul></body></html>", relative_path, listing_html);
         self.status_code = HttpStatus::Ok;
         self.headers.clear();
         self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
