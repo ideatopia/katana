@@ -14,6 +14,9 @@ pub struct Server {
 }
 
 impl Server {
+    const SERVER_NAME: &'static str = "Katana";
+    const SERVER_VERSION: &'static str = "0.1.0";
+
     pub fn new(host: String, port: u16, root_dir: PathBuf) -> Self {
         let http_server = Self {
             host,
@@ -46,6 +49,7 @@ impl Server {
     pub fn handle_response(&self, request: Request, stream: &mut TcpStream) {
         if let Some(mut response) = Response::new(request) {
             response.serve(&self.root_dir);
+            self.server_transformation(&mut response);
             let _ = stream.write_all(response.to_string().as_bytes());
             Self::log_response(&response);
         } else {
@@ -59,6 +63,15 @@ impl Server {
 
     pub fn addr_with_protocol(&self) -> String {
         format!("http://{}", self.addr())
+    }
+
+    pub fn version() -> String {
+        format!("{} {}", Self::SERVER_NAME.to_string(), Self::SERVER_VERSION.to_string())
+    }
+
+    pub fn server_transformation(&self, response: &mut Response) {
+        // add to headers server name
+        response.headers.push(("Server".to_string(), Self::version()));
     }
 
     pub fn log_response(response: &Response) {
