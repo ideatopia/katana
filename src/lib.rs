@@ -5,6 +5,7 @@ use crate::templates::Templates;
 
 pub mod config;
 pub mod logger;
+pub mod utils;
 pub mod templates;
 pub mod http;
 pub mod server;
