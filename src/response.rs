@@ -37,7 +37,7 @@ impl Response {
             if index_html.is_file() {
                 self.serve_file(index_html);
             } else {
-                self.serve_directory(file_path);
+                self.serve_directory(root_dir, file_path);
             }
         } else if file_path.is_file() {
             self.serve_file(file_path);
@@ -74,10 +74,10 @@ impl Response {
         }
     }
 
-    fn serve_directory(&mut self, path: PathBuf) {
+    fn serve_directory(&mut self, root_path: &PathBuf, path: PathBuf) {
         let mut listing_html = String::new();
 
-        let root_dir = "public";
+        let root_dir = root_path.to_str().unwrap();
 
         let mut relative_path = match path.strip_prefix(&root_dir) {
             Ok(relative) => relative.to_string_lossy().to_string(),
