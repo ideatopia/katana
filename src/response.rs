@@ -70,6 +70,7 @@ impl Response {
         self.status_code = HttpStatus::Ok;
         self.headers.clear();
         self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
+        self.headers.push(("Content-Length".to_string(), self.body.len().to_string()));
     }
 
     fn serve_error_response(&mut self, status: HttpStatus) {
@@ -77,6 +78,7 @@ impl Response {
         self.body = format!("<html><body><h1>{}</h1></body></html>", self.status_code.to_message());
         self.headers.clear();
         self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
+        self.headers.push(("Content-Length".to_string(), self.body.len().to_string()));
     }
 
     pub fn to_string(&self) -> String {
