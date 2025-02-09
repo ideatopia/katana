@@ -48,6 +48,13 @@ impl Response {
     }
 
     fn serve_file(&mut self, path: PathBuf) {
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+
+        if name.starts_with('.') {
+            self.serve_error_response(HttpStatus::NotFound);
+            return;
+        }
+
         match File::open(&path) {
             Ok(mut file) => {
                 let mut content = String::new();
