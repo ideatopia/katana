@@ -13,7 +13,7 @@ pub struct Response {
     pub status_code: HttpStatus,
     pub headers: Vec<(String, String)>,
     pub cookies: Vec<(String, String)>,
-    pub body: String, // make body bytes and handle based on type Vec of <T> | String | Raw
+    pub body: Vec<u8>,
 }
 
 impl Response {
@@ -24,7 +24,7 @@ impl Response {
             status_code: HttpStatus::Ok, // default to 200 OK
             headers: Vec::new(),
             cookies: Vec::new(),
-            body: String::new(),
+            body: Vec::new(),
         };
 
         Some(response)
@@ -82,8 +82,8 @@ impl Response {
                 // @see: https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Disposition
                 let content_disposition = file_type.content_disposition();
 
-                let mut content = String::new();
-                if file.read_to_string(&mut content).is_ok() {
+                let mut content = Vec::new();
+                if file.read_to_end(&mut content).is_ok() {
                     self.body = content;
                     self.status_code = HttpStatus::Ok;
                     self.headers.clear();
@@ -145,7 +145,7 @@ impl Response {
             listing_html.push_str(&format!("<li><a href='{}'>{}</a></li>", li_href, entry_name));
         }
 
-        self.body = format!("<html><body><h1>Directory listing for {}</h1><ul>{}</ul></body></html>", relative_path, listing_html);
+        self.body = format!("<html><body><h1>Directory listing for {}</h1><ul>{}</ul></body></html>", relative_path, listing_html).into_bytes();
         self.status_code = HttpStatus::Ok;
         self.headers.clear();
         self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
@@ -154,13 +154,13 @@ impl Response {
 
     fn serve_error_response(&mut self, status: HttpStatus) {
         self.status_code = status;
-        self.body = format!("<html><body><h1>{}</h1></body></html>", self.status_code.to_message());
+        self.body = format!("<html><body><h1>{}</h1></body></html>", self.status_code.to_message()).into_bytes();
         self.headers.clear();
         self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
         self.headers.push(("Content-Length".to_string(), self.body.len().to_string()));
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn http_description(&self) -> String {
         let mut result = String::new();
 
         // format the status line
@@ -183,10 +183,27 @@ impl Response {
             .collect::<String>();
         result.push_str(&cookies);
 
-        // format body
+        return result;
+    }
+
+    pub fn to_string(&self) -> String {
+        let mut result = self.http_description();
+
         result.push_str("\r\n"); // add a blank line between headers and body
-        result.push_str(&self.body);
+        result.push_str(
+            String::from_utf8_lossy(&self.body.as_slice()).as_ref()
+        );
 
         return result;
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+
+        bytes.extend_from_slice(self.http_description().as_bytes());
+        bytes.extend_from_slice("\r\n".as_bytes()); // add a blank line between headers and body
+        bytes.extend_from_slice(&self.body);
+
+        return bytes;
     }
 }
