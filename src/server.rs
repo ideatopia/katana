@@ -55,7 +55,8 @@ impl Server {
         if let Some(mut response) = Response::new(request) {
             response.serve(&self.config.root_dir);
             self.server_transformation(&mut response);
-            let _ = stream.write_all(response.to_string().as_bytes());
+            let _ = stream.write_all(response.to_string().as_bytes()).unwrap();
+            stream.flush().unwrap();
             Self::log_response(&response);
         } else {
             Logger::log(LogLevel::WARN, "Failed to send response.")
