@@ -4,6 +4,7 @@ use std::process;
 use crate::logger::{Logger, LogLevel};
 
 #[derive(Debug)]
+#[derive(Clone)]
 pub struct Config {
     pub host: String,
     pub port: u16,

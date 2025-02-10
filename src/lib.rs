@@ -26,13 +26,9 @@ impl Katana {
     }
 
     pub fn start(&self) {
-        Self::show_banner(self);
+        self.show_banner();
 
-        let server = Server::new(
-            self.config.host.to_owned(),
-            self.config.port.to_owned(),
-            self.config.root_dir.to_owned()
-        );
+        let server = Server::new(self.config.to_owned(), self.templates.to_owned());
 
         Logger::log(LogLevel::INFO, format!("Server starting on {}", server.addr_with_protocol()).as_str());
 

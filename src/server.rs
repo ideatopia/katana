@@ -1,16 +1,14 @@
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
-use std::path::PathBuf;
 use std::thread;
+use crate::config::Config;
 use crate::logger::{Logger, LogLevel};
 use crate::request::Request;
 use crate::response::Response;
 use crate::templates::Templates;
 
 pub struct Server {
-    host: String,
-    port: u16,
-    root_dir: PathBuf,
+    config: Config,
     templates: Templates,
 }
 
@@ -18,12 +16,10 @@ impl Server {
     const SERVER_NAME: &'static str = "Katana";
     const SERVER_VERSION: &'static str = "0.1.0";
 
-    pub fn new(host: String, port: u16, root_dir: PathBuf) -> Self {
+    pub fn new(config: Config, templates: Templates) -> Self {
         let http_server = Self {
-            host,
-            port,
-            root_dir,
-            templates: Templates::load(),
+            config,
+            templates,
         };
 
         return http_server;
@@ -35,13 +31,12 @@ impl Server {
         for stream in listener.incoming() {
             if let Ok(stream) = stream {
                 // spawn a new thread for each connection
-                let host = self.host.clone();
-                let port = self.port;
-                let root_dir = self.root_dir.clone();
+                let config = self.config.clone();
+                let templates = self.templates.clone();
 
                 thread::spawn(move || {
                     // create a new server instance for the thread with the necessary data
-                    let server = Server::new(host, port, root_dir);
+                    let server = Server::new(config, templates);
                     server.handle_request(stream);
                 });
             }
@@ -58,7 +53,7 @@ impl Server {
 
     pub fn handle_response(&self, request: Request, stream: &mut TcpStream) {
         if let Some(mut response) = Response::new(request) {
-            response.serve(&self.root_dir);
+            response.serve(&self.config.root_dir);
             self.server_transformation(&mut response);
             let _ = stream.write_all(response.to_string().as_bytes());
             Self::log_response(&response);
@@ -68,7 +63,7 @@ impl Server {
     }
 
     pub fn addr(&self) -> String {
-        format!("{}:{}", self.host, self.port)
+        format!("{}:{}", self.config.host, self.config.port)
     }
 
     pub fn addr_with_protocol(&self) -> String {

@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+#[derive(Debug)]
+#[derive(Clone)]
 pub struct Templates {
     pub banner: String,
     pub error: String,
