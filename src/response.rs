@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
+use crate::filetype::FileType;
 use crate::request::Request;
 use crate::http::{HttpVersion, HttpStatus};
 use crate::utils::Utils;
@@ -12,7 +13,7 @@ pub struct Response {
     pub status_code: HttpStatus,
     pub headers: Vec<(String, String)>,
     pub cookies: Vec<(String, String)>,
-    pub body: String,
+    pub body: String, // make body bytes and handle based on type Vec of <T> | String | Raw
 }
 
 impl Response {
@@ -73,13 +74,22 @@ impl Response {
 
         match File::open(&path) {
             Ok(mut file) => {
+                let extension = path.extension().unwrap().to_str().unwrap();
+
+                let file_type = FileType::from_extension(extension)
+                    .unwrap_or_else(|| FileType::new("bin", "application/octet-stream", "Binary File"));
+
+                // @see: https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Disposition
+                let content_disposition = file_type.content_disposition();
+
                 let mut content = String::new();
                 if file.read_to_string(&mut content).is_ok() {
                     self.body = content;
                     self.status_code = HttpStatus::Ok;
                     self.headers.clear();
-                    self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
+                    self.headers.push(("Content-Type".to_string(), file_type.content_type.to_string()));
                     self.headers.push(("Content-Length".to_string(), self.body.len().to_string()));
+                    self.headers.push(("Content-Disposition".to_string(), content_disposition.to_string()));
                 } else {
                     self.serve_error_response(HttpStatus::InternalServerError);
                 }
