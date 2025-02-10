@@ -1,5 +1,5 @@
 use std::fs::{self, ReadDir};
-use std::path::{Component, Path, PathBuf};
+use std::path::{Component, PathBuf};
 
 #[derive(Debug)]
 pub struct Utils;

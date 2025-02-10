@@ -1,6 +1,5 @@
 use std::env::args;
 use std::path::PathBuf;
-use std::process;
 use crate::logger::{Logger, LogLevel};
 
 #[derive(Debug)]

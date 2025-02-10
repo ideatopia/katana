@@ -53,7 +53,7 @@ impl Response {
 
         let root_dir = root_path.to_str().unwrap();
 
-        let mut relative_path = match path.strip_prefix(&root_dir) {
+        let relative_path = match path.strip_prefix(&root_dir) {
             Ok(relative) => relative.to_string_lossy().to_string(),
             Err(_) => String::from("/"), // fallback in case of error
         };
