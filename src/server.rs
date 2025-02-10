@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::path::PathBuf;
+use std::thread;
 use crate::logger::{Logger, LogLevel};
 use crate::request::Request;
 use crate::response::Response;
@@ -33,7 +34,16 @@ impl Server {
 
         for stream in listener.incoming() {
             if let Ok(stream) = stream {
-                self.handle_request(stream);
+                // spawn a new thread for each connection
+                let host = self.host.clone();
+                let port = self.port;
+                let root_dir = self.root_dir.clone();
+
+                thread::spawn(move || {
+                    // create a new server instance for the thread with the necessary data
+                    let server = Server::new(host, port, root_dir);
+                    server.handle_request(stream);
+                });
             }
         }
     }
