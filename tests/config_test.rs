@@ -107,7 +107,7 @@ mod tests {
         let args = vec!["".to_string(), "--worker".to_string(), "-1".to_string()];
         let config = Config::parse_args(args);
 
-        assert_eq!(config.worker, 4); // Should fall back to default worker count
+        assert_eq!(config.worker, 4); // Should fall back to default worker count: 4
     }
 
     /// Test case for passing a valid worker value.

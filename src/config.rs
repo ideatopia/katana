@@ -12,6 +12,8 @@ pub struct Config {
 }
 
 impl Config {
+    pub const MIN_WORKER: i32 = 1;
+
     pub fn load_args() -> Self {
         let env_args: Vec<String> = args().collect();
         return Self::parse_args(env_args);
@@ -50,10 +52,12 @@ impl Config {
                 }
                 "--worker" => {
                     if i + 1 < args.len() {
-                        worker = args[i + 1].clone().parse().unwrap();
-                        if worker < 1 {
-                            Logger::log(LogLevel::ERROR, "worker cannot be less than 1");
-                            process::exit(1);
+                        if let Ok(parsed_worker) = args[i + 1].parse::<i32>() {
+                            if parsed_worker > Self::MIN_WORKER {
+                                worker = parsed_worker;
+                            } else {
+                                Logger::log(LogLevel::ERROR, "worker cannot be less than 1");
+                            }
                         }
                         i += 1;
                     }
