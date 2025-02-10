@@ -35,12 +35,12 @@ impl Response {
         if file_path.is_dir() {
             let index_html = file_path.join("index.html");
             if index_html.is_file() {
-                self.serve_file(index_html);
+                self.serve_file(root_dir, index_html);
             } else {
                 self.serve_directory(root_dir, file_path);
             }
         } else if file_path.is_file() {
-            self.serve_file(file_path);
+            self.serve_file(root_dir, file_path);
         } else {
             self.serve_error_response(HttpStatus::NotFound);
         }
@@ -48,8 +48,22 @@ impl Response {
         return self;
     }
 
-    fn serve_file(&mut self, path: PathBuf) {
+    fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
         let name = path.file_name().unwrap().to_string_lossy().to_string();
+
+        let root_dir = root_path.to_str().unwrap();
+
+        let mut relative_path = match path.strip_prefix(&root_dir) {
+            Ok(relative) => relative.to_string_lossy().to_string(),
+            Err(_) => String::from("/"), // fallback in case of error
+        };
+
+        if relative_path.starts_with("/.") || relative_path.starts_with(".") {
+            if !relative_path.contains(".well-known") {
+                self.serve_error_response(HttpStatus::Forbidden);
+                return;
+            }
+        }
 
         // do not serve files starting with dot "." except those with ".well-known" in the name
         if name.starts_with(".") && name != ".well-known" {
@@ -86,7 +100,7 @@ impl Response {
 
         relative_path.insert_str(0, "/"); // append / to navigate easily to parent folder
 
-        if relative_path.contains(".well-known") {
+        if relative_path.starts_with("/.") || relative_path.starts_with(".") {
             self.serve_error_response(HttpStatus::Forbidden);
             return;
         }
