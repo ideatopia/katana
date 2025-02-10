@@ -1,11 +1,14 @@
 use std::env::args;
 use std::path::PathBuf;
+use std::process;
+use crate::logger::{Logger, LogLevel};
 
 #[derive(Debug)]
 pub struct Config {
     pub host: String,
     pub port: u16,
     pub root_dir: PathBuf,
+    pub worker: i32,
 }
 
 impl Config {
@@ -22,6 +25,7 @@ impl Config {
         };
         let mut port = 8080;
         let mut root_dir = PathBuf::from("public");
+        let mut worker = 4;
 
         let mut i = 1;
         while i < args.len() {
@@ -44,11 +48,21 @@ impl Config {
                         i += 1;
                     }
                 }
+                "--worker" => {
+                    if i + 1 < args.len() {
+                        worker = args[i + 1].clone().parse().unwrap();
+                        if worker < 1 {
+                            Logger::log(LogLevel::ERROR, "worker cannot be less than 1");
+                            process::exit(1);
+                        }
+                        i += 1;
+                    }
+                }
                 _ => {}
             }
             i += 1;
         }
 
-        Config { host, port, root_dir }
+        Config { host, port, root_dir, worker }
     }
 }

@@ -25,6 +25,7 @@ mod tests {
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080);
         assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.worker, 4);
     }
 
     /// Test case for passing an invalid port value.
@@ -36,6 +37,7 @@ mod tests {
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080); // Default port
         assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.worker, 4);
     }
 
     /// Test case for passing a very large port number.
@@ -47,6 +49,7 @@ mod tests {
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080); // Default port
         assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.worker, 4);
     }
 
     /// Test case for passing a very long path string.
@@ -59,6 +62,7 @@ mod tests {
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080);
         assert_eq!(config.root_dir, PathBuf::from("a".repeat(300)));
+        assert_eq!(config.worker, 4);
     }
 
     /// Test case for passing an invalid host value.
@@ -70,6 +74,7 @@ mod tests {
         assert_eq!(config.host, "256.256.256.256"); // Host accepts any string, no validation
         assert_eq!(config.port, 8080);
         assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.worker, 4);
     }
 
     /// Test case for passing unexpected arguments.
@@ -81,6 +86,7 @@ mod tests {
         assert_eq!(config.host, get_host()); // Default should still be used
         assert_eq!(config.port, 8080); // Default should still be used
         assert_eq!(config.root_dir, PathBuf::from("public")); // Default should still be used
+        assert_eq!(config.worker, 4);
     }
 
     /// Test case for passing the port argument multiple times.
@@ -92,5 +98,24 @@ mod tests {
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 5000); // Last port specified should be used
         assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.worker, 4);
+    }
+
+    /// Test case for passing an invalid worker value.
+    #[test]
+    fn test_invalid_worker() {
+        let args = vec!["".to_string(), "--worker".to_string(), "-1".to_string()];
+        let config = Config::parse_args(args);
+
+        assert_eq!(config.worker, 4); // Should fall back to default worker count
+    }
+
+    /// Test case for passing a valid worker value.
+    #[test]
+    fn test_valid_worker() {
+        let args = vec!["".to_string(), "--worker".to_string(), "8".to_string()];
+        let config = Config::parse_args(args);
+
+        assert_eq!(config.worker, 8);
     }
 }
