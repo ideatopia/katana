@@ -13,6 +13,7 @@ pub struct Config {
 
 impl Config {
     pub const MIN_WORKER: i32 = 1;
+    pub const CHUNK_SIZE: usize = 8192;
 
     pub fn load_args() -> Self {
         let env_args: Vec<String> = args().collect();
