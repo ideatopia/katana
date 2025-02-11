@@ -37,13 +37,8 @@ impl Templates {
         }
     }
 
-    pub fn render(&self, template: &str, params: HashMap<String, String>) -> String {
-        let mut content = match template {
-            "banner" => self.banner.clone(),
-            "error" => self.error.clone(),
-            "directory" => self.directory.clone(),
-            _ => String::new(),
-        };
+    pub fn render(&self, template: TemplatesPage, params: HashMap<String, String>) -> String {
+        let mut content = Self::from_enum(template).expect("Cannot load unregistered template");
 
         for (key, value) in params {
             let placeholder = "{{".to_string() + &key + "}}";

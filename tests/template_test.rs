@@ -1,4 +1,4 @@
-use katana::templates::Templates;
+use katana::templates::{Templates, TemplatesPage};
 
 #[cfg(test)]
 mod tests {
@@ -38,7 +38,7 @@ mod tests {
         let mut params = HashMap::new();
         params.insert("username".to_string(), "Alice".to_string());
 
-        let rendered = template_extensions.render("banner", params);
+        let rendered = template_extensions.render(TemplatesPage::BANNER, params);
 
         assert!(rendered.contains("Alice"), "Rendered template should contain replaced username");
     }
@@ -51,7 +51,7 @@ mod tests {
         params.insert("username".to_string(), "Bob".to_string());
         params.insert("role".to_string(), "Admin".to_string());
 
-        let rendered = template_extensions.render("directory", params);
+        let rendered = template_extensions.render(TemplatesPage::DIRECTORY, params);
 
         assert!(rendered.contains("Bob"), "Rendered template should contain 'Bob'");
         assert!(rendered.contains("Admin"), "Rendered template should contain 'Admin'");
@@ -63,7 +63,7 @@ mod tests {
         let template_extensions: Templates = TemplateExtensions::new_mock();
         let params = HashMap::new(); // No params provided
 
-        let rendered = template_extensions.render("error", params);
+        let rendered = template_extensions.render(TemplatesPage::ERROR, params);
 
         assert!(rendered.contains("{{"), "Unreplaced placeholders should remain");
     }
@@ -75,20 +75,8 @@ mod tests {
         let mut params = HashMap::new();
         params.insert("username".to_string(), "".to_string());
 
-        let rendered = template_extensions.render("banner", params);
+        let rendered = template_extensions.render(TemplatesPage::BANNER, params);
 
         assert!(rendered.contains("{{username}}"), "Empty value should not remove the placeholder");
-    }
-
-    /// Test rendering an unknown template
-    #[test]
-    fn test_rendering_with_unknown_template() {
-        let template_extensions: Templates = TemplateExtensions::new_mock();
-        let mut params = HashMap::new();
-        params.insert("key".to_string(), "value".to_string());
-
-        let rendered = template_extensions.render("unknown", params);
-
-        assert!(rendered.is_empty(), "Unknown template should return an empty string");
     }
 }
