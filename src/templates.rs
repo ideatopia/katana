@@ -2,6 +2,14 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 #[derive(Clone)]
+pub enum TemplatesPage {
+    BANNER,
+    ERROR,
+    DIRECTORY,
+}
+
+#[derive(Debug)]
+#[derive(Clone)]
 pub struct Templates {
     pub banner: String,
     pub error: String,
@@ -17,6 +25,16 @@ impl Templates {
         };
 
         return templates;
+    }
+
+    pub fn from_enum(template_page: TemplatesPage) -> Option<String> {
+        let templates = Self::load();
+
+        match template_page {
+            TemplatesPage::BANNER => Some(templates.banner),
+            TemplatesPage::ERROR => Some(templates.error),
+            TemplatesPage::DIRECTORY => Some(templates.directory),
+        }
     }
 
     pub fn render(&self, template: &str, params: HashMap<String, String>) -> String {
