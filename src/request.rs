@@ -115,7 +115,7 @@ impl Request {
         result
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn http_description(&self) -> String {
         let mut result = String::new();
 
         // format the status line
@@ -139,6 +139,12 @@ impl Request {
         for (key, value) in &self.headers {
             result.push_str(&format!("{}: {}\r\n", key.trim(), value.trim()));
         }
+
+        return result;
+    }
+
+    pub fn to_string(&self) -> String {
+        let result = self.http_description();
 
         return result;
     }
