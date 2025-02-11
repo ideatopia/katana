@@ -102,6 +102,8 @@ impl Response {
         let mut listing_html = String::new();
 
         let root_dir = root_path.to_str().unwrap();
+        let binding = root_dir.replace('\\', "/");
+        let root_dir_normalized = binding.trim();
 
         let mut relative_path = match path.strip_prefix(&root_dir) {
             Ok(relative) => relative.to_string_lossy().to_string(),
@@ -136,12 +138,12 @@ impl Response {
         }
 
         for (entry_name, entry_path) in folders {
-            let li_href = entry_path.strip_prefix(root_dir).unwrap();
+            let li_href = entry_path.strip_prefix(root_dir_normalized).unwrap();
             listing_html.push_str(&format!("<li><a href='{}'>{}</a></li>", li_href, entry_name));
         }
 
         for (entry_name, entry_path) in files {
-            let li_href = entry_path.strip_prefix(root_dir).unwrap();
+            let li_href = entry_path.strip_prefix(root_dir_normalized).unwrap();
             listing_html.push_str(&format!("<li><a href='{}'>{}</a></li>", li_href, entry_name));
         }
 
