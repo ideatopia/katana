@@ -1,11 +1,14 @@
+use std::collections::HashSet;
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 use crate::config::Config;
+use crate::http::HttpStatus;
 use crate::logger::{Logger, LogLevel};
 use crate::request::Request;
 use crate::response::Response;
 use crate::templates::Templates;
+use crate::utils::Utils;
 
 pub struct Server {
     config: Config,
@@ -54,6 +57,7 @@ impl Server {
     pub fn handle_response(&self, request: Request, stream: &mut TcpStream) {
         if let Some(mut response) = Response::new(request, self.templates.to_owned()) {
             response.serve(&self.config.root_dir);
+            self.method_handle(&mut response);
             self.server_transformation(&mut response);
             let _ = stream.write_all(response.to_bytes().as_slice()).unwrap();
             stream.flush().unwrap();
@@ -78,6 +82,66 @@ impl Server {
     pub fn server_transformation(&self, response: &mut Response) {
         // add to headers server name
         response.headers.push(("Server".to_string(), Self::version()));
+    }
+
+    pub fn method_handle(&self, response: &mut Response) {
+        if response.request.method == "GET" {
+            // nothing, process as usual
+        }
+
+        if response.request.method == "HEAD" {
+            // do not return body
+            response.body = Vec::new();
+        }
+
+        if response.request.method == "OPTIONS" {
+            // do not return body
+            response.body = Vec::new();
+
+            // headers
+            response.headers.push(("Date".to_string(), Utils::datetime_rfc_1123().to_string()));
+            response.headers.push(("Allow".to_string(), "GET, HEAD, OPTIONS, TRACE".to_string()));
+            // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+            response.headers.push(("Access-Control-Allow-Origin".to_string(), "*".to_string()));
+            response.headers.push(("Access-Control-Allow-Methods".to_string(), "GET, HEAD, OPTIONS, TRACE".to_string()));
+            // response.headers.push(("Access-Control-Allow-Headers".to_string(), "content-type, accept".to_string()));
+        }
+
+        if response.request.method == "TRACE" {
+            // do not return body
+            response.body = Vec::new();
+
+            // We supports TRACE universally (ignoring route existence), so it will always be 200 OK
+            // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE#successful_trace_request
+            response.status_code = HttpStatus::Ok;
+
+            // flush headers
+            response.headers.clear();
+
+            // correct type
+            response.headers.push(("Content-Type".to_string(), "message/http".to_string()));
+
+            // new body
+            let body = format!("{}\r\n", response.request.http_description());
+
+            // new body length
+            response.headers.push(("Content-Length".to_string(), body.len().to_string()));
+
+            // set new body
+            response.body = body.into_bytes();
+        }
+
+        let disallowed_methods: HashSet<&str> = ["CONNECT", "POST", "PUT", "PATCH", "DELETE"].into_iter().collect();
+
+        if disallowed_methods.contains(&response.request.method.as_str()) {
+            // do not return body
+            response.body = Vec::new();
+            // headers
+            response.headers.clear();
+            response.headers.push(("Allow".to_string(), "GET, HEAD, OPTIONS, TRACE".to_string()));
+            // status
+            response.status_code = HttpStatus::MethodNotAllowed;
+        }
     }
 
     pub fn log_response(response: &Response) {
