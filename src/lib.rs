@@ -1,7 +1,8 @@
+use std::collections::HashMap;
 use crate::config::Config;
 use crate::logger::{Logger, LogLevel};
 use crate::server::Server;
-use crate::templates::Templates;
+use crate::templates::{Templates, TemplatesPage};
 
 pub mod config;
 pub mod logger;
@@ -28,15 +29,14 @@ impl Katana {
 
     pub fn start(&self) {
         self.show_banner();
-
         let server = Server::new(self.config.to_owned(), self.templates.to_owned());
-
         Logger::log(LogLevel::INFO, format!("Server starting on {}", server.addr_with_protocol()).as_str());
-
         server.serve();
     }
 
     fn show_banner(&self) {
-        println!("{}", self.templates.banner);
+        let mut params = HashMap::new();
+        params.insert("version".to_string(), format!("{: >1$}", Server::version(), 67));
+        println!("{}", self.templates.render(TemplatesPage::BANNER, params));
     }
 }
