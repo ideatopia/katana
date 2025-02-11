@@ -1,14 +1,17 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 use crate::filetype::FileType;
 use crate::request::Request;
 use crate::http::{HttpVersion, HttpStatus};
+use crate::templates::{Templates, TemplatesPage};
 use crate::utils::Utils;
 
 #[derive(Debug)]
 pub struct Response {
     pub request: Request,
+    pub templates: Templates,
     pub http_version: HttpVersion,
     pub status_code: HttpStatus,
     pub headers: Vec<(String, String)>,
@@ -17,9 +20,10 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn new(request: Request) -> Option<Self> {
+    pub fn new(request: Request, templates: Templates) -> Option<Self> {
         let response = Self {
             request: request.clone(),
+            templates: templates,
             http_version: HttpVersion::Http11, // default to HTTP/1.1
             status_code: HttpStatus::Ok, // default to 200 OK
             headers: Vec::new(),
@@ -147,7 +151,11 @@ impl Response {
             listing_html.push_str(&format!("<li><a href='{}'>{}</a></li>", li_href, entry_name));
         }
 
-        self.body = format!("<html><body><h1>Directory listing for {}</h1><ul>{}</ul></body></html>", relative_path, listing_html).into_bytes();
+        let mut params = HashMap::new();
+        params.insert("folder".to_string(), relative_path);
+        params.insert("directory_content".to_string(), listing_html);
+
+        self.body = self.templates.render(TemplatesPage::DIRECTORY, params).into_bytes();
         self.status_code = HttpStatus::Ok;
         self.headers.clear();
         self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
@@ -155,8 +163,13 @@ impl Response {
     }
 
     fn serve_error_response(&mut self, status: HttpStatus) {
+        let mut params = HashMap::new();
+        params.insert("status_code".to_string(), status.to_code().to_string());
+        params.insert("status_text".to_string(), status.to_message().to_string());
+        params.insert("error_message".to_string(), "Something went wrong !".to_string()); //
+
         self.status_code = status;
-        self.body = format!("<html><body><h1>{}</h1></body></html>", self.status_code.to_message()).into_bytes();
+        self.body = self.templates.render(TemplatesPage::ERROR, params).into_bytes();
         self.headers.clear();
         self.headers.push(("Content-Type".to_string(), "text/html".to_string()));
         self.headers.push(("Content-Length".to_string(), self.body.len().to_string()));

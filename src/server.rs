@@ -52,7 +52,7 @@ impl Server {
     }
 
     pub fn handle_response(&self, request: Request, stream: &mut TcpStream) {
-        if let Some(mut response) = Response::new(request) {
+        if let Some(mut response) = Response::new(request, self.templates.to_owned()) {
             response.serve(&self.config.root_dir);
             self.server_transformation(&mut response);
             let _ = stream.write_all(response.to_bytes().as_slice()).unwrap();
