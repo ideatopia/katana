@@ -106,10 +106,10 @@ impl Server {
 
             // headers
             response.headers.push(("Date".to_string(), Utils::datetime_rfc_1123().to_string()));
-            response.headers.push(("Allow".to_string(), "GET, HEAD, OPTIONS, TRACE".to_string()));
+            response.headers.push(("Allow".to_string(), HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS)));
             // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             response.headers.push(("Access-Control-Allow-Origin".to_string(), "*".to_string()));
-            response.headers.push(("Access-Control-Allow-Methods".to_string(), "GET, HEAD, OPTIONS, TRACE".to_string()));
+            response.headers.push(("Access-Control-Allow-Methods".to_string(), HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS)));
             // response.headers.push(("Access-Control-Allow-Headers".to_string(), "content-type, accept".to_string()));
         }
 
@@ -142,7 +142,7 @@ impl Server {
             response.body = Vec::new();
             // headers
             response.headers.clear();
-            response.headers.push(("Allow".to_string(), "GET, HEAD, OPTIONS, TRACE".to_string()));
+            response.headers.push(("Allow".to_string(), HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS)));
             // status
             response.status_code = HttpStatus::MethodNotAllowed;
         }

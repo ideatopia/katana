@@ -264,4 +264,11 @@ impl HttpMethod {
             Self::CONNECT,
         ]
     }
+
+    pub fn comma_separated(methods: &[HttpMethod]) -> String {
+        methods.iter()
+            .map(|m| m.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    }
 }
