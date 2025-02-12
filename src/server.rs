@@ -17,7 +17,7 @@ pub struct Server {
 impl Server {
     const SERVER_NAME: &'static str = "Katana";
     const SERVER_VERSION: &'static str = "0.1.0";
-    const SUPPORTED_HTTP_METHODS: &'static[HttpMethod] = &[
+    pub const SUPPORTED_HTTP_METHODS: &'static[HttpMethod] = &[
         HttpMethod::GET,
         HttpMethod::HEAD,
         HttpMethod::OPTIONS,

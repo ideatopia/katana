@@ -1,6 +1,8 @@
 use std::io::{BufRead, BufReader, Read};
 use std::net::TcpStream;
 use crate::http::{HttpMethod, HttpVersion};
+use crate::logger::{Logger, LogLevel};
+use crate::server::Server;
 
 #[derive(Debug)]
 #[derive(Clone)]
@@ -79,20 +81,27 @@ impl Request {
             }
         }
 
-        // check for a content-length header and read the body if provided
-        if let Some((_, cl_value)) = headers
-            .iter()
-            .find(|(key, _)| key.to_lowercase() == "content-length")
-        {
-            if let Ok(content_length) = cl_value.trim().parse::<usize>() {
-                let mut buf = vec![0; content_length];
-                if let Err(e) = reader.read_exact(&mut buf) {
-                    eprintln!("Error reading body: {:?}", e);
-                    return None;
+        // process body only if method is allowed
+        if Server::SUPPORTED_HTTP_METHODS.contains(&method) {
+            // check for a content-length header and read the body if provided
+            if let Some((_, cl_value)) = headers
+                .iter()
+                .find(|(key, _)| key.to_lowercase() == "content-length")
+            {
+                if let Ok(content_length) = cl_value.trim().parse::<usize>() {
+                    let mut buf = vec![0; content_length];
+                    if let Err(e) = reader.read_exact(&mut buf) {
+                        Logger::log(LogLevel::WARN, &format!("Error reading body: {}", e.to_string()));
+                        return None;
+                    }
+                    // assuming the body is UTF-8 encoded text
+                    body = String::from_utf8_lossy(&buf).to_string();
                 }
-                // assuming the body is UTF-8 encoded text
-                body = String::from_utf8_lossy(&buf).to_string();
             }
+        } else {
+            Logger::log(LogLevel::WARN, &format!(
+                "Method '{}' on '{}' is disable", method.as_str(), path.as_str()
+            ));
         }
 
         Some(Self {
