@@ -1,6 +1,6 @@
 use std::io::{BufRead, BufReader, Read};
 use std::net::TcpStream;
-use crate::http::HttpVersion;
+use crate::http::{HttpMethod, HttpVersion};
 
 #[derive(Debug)]
 #[derive(Clone)]
@@ -8,7 +8,7 @@ pub struct Request {
     pub version: HttpVersion,
     pub domain: String,
     pub path: String,
-    pub method: String,
+    pub method: HttpMethod,
     pub queries: Vec<(String, String)>,
     pub headers: Vec<(String, String)>,
     pub cookies: Vec<(String, String)>,
@@ -30,7 +30,7 @@ impl Request {
             return None; // invalid request
         }
 
-        let method = parts[0].to_string();
+        let method = HttpMethod::from_str(parts[0]).unwrap();
         let raw_path = parts[1];
         let mut path = Self::decode_url(raw_path);
         let version = HttpVersion::from_str(&parts[2].replace("HTTP/", "")).unwrap();
@@ -143,7 +143,7 @@ impl Request {
         // format the status line
         result.push_str(&format!(
             "{} {} {}\r\n",
-            self.method,
+            self.method.as_str(),
             self.path,
             self.version.as_str()
         ));

@@ -1,9 +1,8 @@
-use std::collections::HashSet;
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 use crate::config::Config;
-use crate::http::HttpStatus;
+use crate::http::{HttpMethod, HttpStatus};
 use crate::logger::{Logger, LogLevel};
 use crate::request::Request;
 use crate::response::Response;
@@ -18,6 +17,13 @@ pub struct Server {
 impl Server {
     const SERVER_NAME: &'static str = "Katana";
     const SERVER_VERSION: &'static str = "0.1.0";
+    const SUPPORTED_HTTP_METHODS: &'static[HttpMethod] = &[
+        HttpMethod::GET,
+        HttpMethod::HEAD,
+        HttpMethod::OPTIONS,
+        HttpMethod::TRACE,
+    ];
+
 
     pub fn new(config: Config, templates: Templates) -> Self {
         let http_server = Self {
@@ -85,16 +91,16 @@ impl Server {
     }
 
     pub fn method_handle(&self, response: &mut Response) {
-        if response.request.method == "GET" {
+        if response.request.method == HttpMethod::GET {
             // nothing, process as usual
         }
 
-        if response.request.method == "HEAD" {
+        if response.request.method == HttpMethod::HEAD {
             // do not return body
             response.body = Vec::new();
         }
 
-        if response.request.method == "OPTIONS" {
+        if response.request.method == HttpMethod::OPTIONS {
             // do not return body
             response.body = Vec::new();
 
@@ -107,7 +113,7 @@ impl Server {
             // response.headers.push(("Access-Control-Allow-Headers".to_string(), "content-type, accept".to_string()));
         }
 
-        if response.request.method == "TRACE" {
+        if response.request.method == HttpMethod::TRACE {
             // do not return body
             response.body = Vec::new();
 
@@ -131,9 +137,7 @@ impl Server {
             response.body = body.into_bytes();
         }
 
-        let disallowed_methods: HashSet<&str> = ["CONNECT", "POST", "PUT", "PATCH", "DELETE"].into_iter().collect();
-
-        if disallowed_methods.contains(&response.request.method.as_str()) {
+        if !Self::SUPPORTED_HTTP_METHODS.contains(&response.request.method) {
             // do not return body
             response.body = Vec::new();
             // headers
