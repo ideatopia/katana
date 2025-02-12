@@ -183,3 +183,82 @@ impl HttpStatus {
         }
     }
 }
+
+#[derive(Debug)]
+#[derive(Copy)]
+#[derive(Clone)]
+pub enum HttpMethod {
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    DELETE,
+    CONNECT,
+    OPTIONS,
+    TRACE,
+    PATCH,
+}
+
+impl HttpMethod {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::GET => "GET",
+            Self::HEAD => "HEAD",
+            Self::POST => "POST",
+            Self::PUT => "PUT",
+            Self::DELETE => "DELETE",
+            Self::CONNECT => "CONNECT",
+            Self::OPTIONS => "OPTIONS",
+            Self::TRACE => "TRACE",
+            Self::PATCH => "PATCH",
+        }
+    }
+
+    pub fn from_str(method_str: &str) -> Option<Self> {
+        match method_str {
+            "GET" => Some(Self::GET),
+            "HEAD" => Some(Self::HEAD),
+            "POST" => Some(Self::POST),
+            "PUT" => Some(Self::PUT),
+            "DELETE" => Some(Self::DELETE),
+            "CONNECT" => Some(Self::CONNECT),
+            "OPTIONS" => Some(Self::OPTIONS),
+            "TRACE" => Some(Self::TRACE),
+            "PATCH" => Some(Self::PATCH),
+            _ => None, // none for unsupported version
+        }
+    }
+
+    pub fn to_vec(&self) -> Vec<Self>   {
+        vec![
+            Self::GET,
+            Self::HEAD,
+            Self::POST,
+            Self::PUT,
+            Self::DELETE,
+            Self::CONNECT,
+            Self::OPTIONS,
+            Self::TRACE,
+            Self::PATCH,
+        ]
+    }
+
+    pub fn immutable() -> Vec<Self> {
+        vec![
+            Self::GET,
+            Self::HEAD,
+            Self::OPTIONS,
+            Self::TRACE,
+        ]
+    }
+
+    pub fn mutable() -> Vec<Self> {
+        vec![
+            Self::POST,
+            Self::PUT,
+            Self::DELETE,
+            Self::PATCH,
+            Self::CONNECT,
+        ]
+    }
+}
