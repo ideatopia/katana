@@ -187,6 +187,9 @@ impl HttpStatus {
 #[derive(Debug)]
 #[derive(Copy)]
 #[derive(Clone)]
+#[derive(Hash)]
+#[derive(Eq)]
+#[derive(PartialEq)]
 pub enum HttpMethod {
     GET,
     HEAD,
