@@ -128,7 +128,7 @@ impl Server {
             response.headers.push(("Content-Type".to_string(), "message/http".to_string()));
 
             // new body
-            let body = format!("{}\r\n", response.request.http_description());
+            let body = format!("\r\n{}", response.request.http_description());
 
             // new body length
             response.headers.push(("Content-Length".to_string(), body.len().to_string()));
