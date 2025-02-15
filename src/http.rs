@@ -27,9 +27,7 @@ impl HttpVersion {
     }
 }
 
-#[derive(Debug)]
-#[derive(Copy)]
-#[derive(Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum HttpStatus {
     // Informational responses (100–199)
     Continue = 100,
@@ -184,12 +182,7 @@ impl HttpStatus {
     }
 }
 
-#[derive(Debug)]
-#[derive(Copy)]
-#[derive(Clone)]
-#[derive(Hash)]
-#[derive(Eq)]
-#[derive(PartialEq)]
+#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub enum HttpMethod {
     GET,
     HEAD,
@@ -232,7 +225,7 @@ impl HttpMethod {
         }
     }
 
-    pub fn to_vec(&self) -> Vec<Self>   {
+    pub fn to_vec(&self) -> Vec<Self> {
         vec![
             Self::GET,
             Self::HEAD,
@@ -247,12 +240,7 @@ impl HttpMethod {
     }
 
     pub fn immutable() -> Vec<Self> {
-        vec![
-            Self::GET,
-            Self::HEAD,
-            Self::OPTIONS,
-            Self::TRACE,
-        ]
+        vec![Self::GET, Self::HEAD, Self::OPTIONS, Self::TRACE]
     }
 
     pub fn mutable() -> Vec<Self> {
@@ -266,7 +254,8 @@ impl HttpMethod {
     }
 
     pub fn comma_separated(methods: &[HttpMethod]) -> String {
-        methods.iter()
+        methods
+            .iter()
             .map(|m| m.as_str())
             .collect::<Vec<_>>()
             .join(", ")

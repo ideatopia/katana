@@ -1,9 +1,8 @@
+use crate::logger::{LogLevel, Logger};
 use std::env::args;
 use std::path::PathBuf;
-use crate::logger::{Logger, LogLevel};
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Config {
     pub host: String,
     pub port: u16,
@@ -17,7 +16,7 @@ impl Config {
 
     pub fn load_args() -> Self {
         let env_args: Vec<String> = args().collect();
-        return Self::parse_args(env_args);
+        Self::parse_args(env_args)
     }
 
     pub fn parse_args(args: Vec<String>) -> Self {
@@ -68,6 +67,11 @@ impl Config {
             i += 1;
         }
 
-        Config { host, port, root_dir, worker }
+        Config {
+            host,
+            port,
+            root_dir,
+            worker,
+        }
     }
 }

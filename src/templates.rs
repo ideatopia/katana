@@ -1,15 +1,13 @@
 use std::collections::HashMap;
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TemplatesPage {
     BANNER,
     ERROR,
     DIRECTORY,
 }
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Templates {
     pub banner: String,
     pub error: String,
@@ -18,13 +16,11 @@ pub struct Templates {
 
 impl Templates {
     pub fn load() -> Self {
-        let templates = Templates {
+        Templates {
             banner: String::from(include_str!("../templates/banner.txt")),
             error: String::from(include_str!("../templates/error.html")),
             directory: String::from(include_str!("../templates/directory.html")),
-        };
-
-        return templates;
+        }
     }
 
     pub fn from_enum(template_page: TemplatesPage) -> Option<String> {
@@ -50,6 +46,6 @@ impl Templates {
             content = content.replace(&placeholder, &value);
         }
 
-        return content;
+        content
     }
 }

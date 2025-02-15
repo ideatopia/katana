@@ -15,9 +15,13 @@ impl Utils {
                     if let Some(name) = entry.file_name().to_str() {
                         if Self::is_valid_entry(name) {
                             let mut entry_path = entry.path().to_string_lossy().replace('\\', "/");
-                            let entry_type = if metadata.is_dir() { "directory" } else { "file" };
-                            if metadata.is_dir() && !entry_path.ends_with("/") {
-                                entry_path.insert_str(entry_path.len(), "/");
+                            let entry_type = if metadata.is_dir() {
+                                "directory"
+                            } else {
+                                "file"
+                            };
+                            if metadata.is_dir() && !entry_path.ends_with('/') {
+                                entry_path.insert(entry_path.len(), '/');
                             }
                             results.push((entry_type.to_string(), name.to_string(), entry_path));
                         }
@@ -40,8 +44,10 @@ impl Utils {
         let mut normalized = PathBuf::new();
         for component in path.components() {
             match component {
-                Component::ParentDir => { normalized.pop(); },
-                Component::CurDir => {},
+                Component::ParentDir => {
+                    normalized.pop();
+                }
+                Component::CurDir => {}
                 _ => normalized.push(component.as_os_str()),
             }
         }
@@ -54,9 +60,9 @@ impl Utils {
 
     pub fn unix_timestamp() -> String {
         if let Ok(duration) = SystemTime::now().duration_since(UNIX_EPOCH) {
-            return duration.as_secs().to_string();
+            duration.as_secs().to_string()
         } else {
-            return String::new();
+            String::new()
         }
     }
 
@@ -89,11 +95,18 @@ impl Utils {
             let minutes = (secs_of_day % 3600) / 60;
             let seconds = secs_of_day % 60;
 
-            return format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z+{}",
-                    years_since_epoch, month, day,
-                    hours, minutes, seconds, Self::timezone_from_env());
+            format!(
+                "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z+{}",
+                years_since_epoch,
+                month,
+                day,
+                hours,
+                minutes,
+                seconds,
+                Self::timezone_from_env()
+            )
         } else {
-            return String::new();
+            String::new()
         }
     }
 
@@ -141,18 +154,17 @@ impl Utils {
             }
             let k = (year % 100) as i32; // Cast k to i32
             let j = (year / 100) as i32; // Cast j to i32
-            let h = ((day as i32) + ((13 * (month + 1)) / 5) + k + (k / 4) + (j / 4) - (2 * j)) % 7;
+            let h = (day + ((13 * (month + 1)) / 5) + k + (k / 4) + (j / 4) - (2 * j)) % 7;
             let h = if h < 0 { h + 7 } else { h }; // Ensure h is within 0..=6
             let weekday = weekdays[h as usize % 7]; // Ensure h is within bounds
 
             let month = month % 12; // Ensure month is within 0..=11
             let monthday = months[month as usize];
 
-            return format!(
+            format!(
                 "{}, {:02} {} {:04} {:02}:{:02}:{:02} GMT",
-                weekday, day, monthday, years_since_epoch,
-                hours, minutes, seconds
-            );
+                weekday, day, monthday, years_since_epoch, hours, minutes, seconds
+            )
         } else {
             String::new() // Return empty string if there's an error
         }

@@ -26,9 +26,18 @@ mod tests {
         let template_extensions: Templates = TemplateExtensions::new_mock();
 
         // Ensure template_extensions are loaded correctly
-        assert!(!template_extensions.banner.is_empty(), "Banner template should not be empty");
-        assert!(!template_extensions.error.is_empty(), "Error template should not be empty");
-        assert!(!template_extensions.directory.is_empty(), "Directory template should not be empty");
+        assert!(
+            !template_extensions.banner.is_empty(),
+            "Banner template should not be empty"
+        );
+        assert!(
+            !template_extensions.error.is_empty(),
+            "Error template should not be empty"
+        );
+        assert!(
+            !template_extensions.directory.is_empty(),
+            "Directory template should not be empty"
+        );
     }
 
     /// Test rendering a valid template with parameters
@@ -40,7 +49,10 @@ mod tests {
 
         let rendered = template_extensions.render(TemplatesPage::BANNER, params);
 
-        assert!(rendered.contains("Alice"), "Rendered template should contain replaced username");
+        assert!(
+            rendered.contains("Alice"),
+            "Rendered template should contain replaced username"
+        );
     }
 
     /// Test rendering a template with multiple parameters
@@ -53,8 +65,14 @@ mod tests {
 
         let rendered = template_extensions.render(TemplatesPage::DIRECTORY, params);
 
-        assert!(rendered.contains("Bob"), "Rendered template should contain 'Bob'");
-        assert!(rendered.contains("Admin"), "Rendered template should contain 'Admin'");
+        assert!(
+            rendered.contains("Bob"),
+            "Rendered template should contain 'Bob'"
+        );
+        assert!(
+            rendered.contains("Admin"),
+            "Rendered template should contain 'Admin'"
+        );
     }
 
     /// Test rendering a template with missing placeholders
@@ -65,7 +83,10 @@ mod tests {
 
         let rendered = template_extensions.render(TemplatesPage::ERROR, params);
 
-        assert!(rendered.contains("{{"), "Unreplaced placeholders should remain");
+        assert!(
+            rendered.contains("{{"),
+            "Unreplaced placeholders should remain"
+        );
     }
 
     /// Test rendering a template with empty parameter values
@@ -77,6 +98,9 @@ mod tests {
 
         let rendered = template_extensions.render(TemplatesPage::BANNER, params);
 
-        assert!(rendered.contains("{{username}}"), "Empty value should not remove the placeholder");
+        assert!(
+            rendered.contains("{{username}}"),
+            "Empty value should not remove the placeholder"
+        );
     }
 }

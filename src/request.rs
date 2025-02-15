@@ -1,11 +1,10 @@
+use crate::http::{HttpMethod, HttpVersion};
+use crate::logger::{LogLevel, Logger};
+use crate::server::Server;
 use std::io::{BufRead, BufReader, Read};
 use std::net::TcpStream;
-use crate::http::{HttpMethod, HttpVersion};
-use crate::logger::{Logger, LogLevel};
-use crate::server::Server;
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Request {
     pub version: HttpVersion,
     pub domain: String,
@@ -91,7 +90,7 @@ impl Request {
                 if let Ok(content_length) = cl_value.trim().parse::<usize>() {
                     let mut buf = vec![0; content_length];
                     if let Err(e) = reader.read_exact(&mut buf) {
-                        Logger::log(LogLevel::WARN, &format!("Error reading body: {}", e.to_string()));
+                        Logger::log(LogLevel::WARN, &format!("Error reading body: {}", e));
                         return None;
                     }
                     // assuming the body is UTF-8 encoded text
@@ -99,9 +98,14 @@ impl Request {
                 }
             }
         } else {
-            Logger::log(LogLevel::WARN, &format!(
-                "Method '{}' on '{}' is disable", method.as_str(), path.as_str()
-            ));
+            Logger::log(
+                LogLevel::WARN,
+                &format!(
+                    "Method '{}' on '{}' is disable",
+                    method.as_str(),
+                    path.as_str()
+                ),
+            );
         }
 
         Some(Self {
@@ -159,7 +163,9 @@ impl Request {
 
         // add query parameters as part of the URL
         if !self.queries.is_empty() {
-            let query_str: Vec<String> = self.queries.iter()
+            let query_str: Vec<String> = self
+                .queries
+                .iter()
                 .map(|(k, v)| format!("{}={}", k.trim(), v.trim()))
                 .collect();
             let query_string = query_str.join("&");
@@ -171,12 +177,10 @@ impl Request {
             result.push_str(&format!("{}: {}\r\n", key.trim(), value.trim()));
         }
 
-        return result;
+        result
     }
 
     pub fn to_string(&self) -> String {
-        let result = self.http_description();
-
-        return result;
+        self.http_description()
     }
 }

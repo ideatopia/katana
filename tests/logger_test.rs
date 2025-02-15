@@ -1,4 +1,4 @@
-use katana::logger::{Logger, LogLevel};
+use katana::logger::{LogLevel, Logger};
 
 #[cfg(test)]
 mod tests {
@@ -26,9 +26,21 @@ mod tests {
         // Check for expected fixed separators at the proper positions:
         assert_eq!(chars[4], '-', "Expected '-' at index 4, got '{}'", chars[4]);
         assert_eq!(chars[7], '-', "Expected '-' at index 7, got '{}'", chars[7]);
-        assert_eq!(chars[10], ' ', "Expected ' ' at index 10, got '{}'", chars[10]);
-        assert_eq!(chars[13], ':', "Expected ':' at index 13, got '{}'", chars[13]);
-        assert_eq!(chars[16], ':', "Expected ':' at index 16, got '{}'", chars[16]);
+        assert_eq!(
+            chars[10], ' ',
+            "Expected ' ' at index 10, got '{}'",
+            chars[10]
+        );
+        assert_eq!(
+            chars[13], ':',
+            "Expected ':' at index 13, got '{}'",
+            chars[13]
+        );
+        assert_eq!(
+            chars[16], ':',
+            "Expected ':' at index 16, got '{}'",
+            chars[16]
+        );
 
         // Check that all other characters are digits.
         for (i, c) in chars.iter().enumerate() {
@@ -36,7 +48,7 @@ mod tests {
                 continue;
             }
             assert!(
-                c.is_digit(10),
+                c.is_ascii_digit(),
                 "Character at index {} should be a digit, got '{}'",
                 i,
                 c
@@ -60,7 +72,9 @@ mod tests {
         assert!(output.starts_with('['), "Output should start with '['");
 
         // Find the closing bracket for the timestamp.
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         // Extract the timestamp (without the leading '[').
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
@@ -99,7 +113,9 @@ mod tests {
         assert!(output.starts_with('['), "Output should start with '['");
 
         // Find the closing bracket for the timestamp.
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         // Extract the timestamp (without the leading '[').
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
@@ -136,7 +152,9 @@ mod tests {
         assert!(output.starts_with('['), "Output should start with '['");
 
         // Find the closing bracket for the timestamp.
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         // Extract the timestamp (without the leading '[').
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
@@ -173,7 +191,9 @@ mod tests {
         assert!(output.starts_with('['), "Output should start with '['");
 
         // Find the closing bracket for the timestamp.
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         // Extract the timestamp (without the leading '[').
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
@@ -206,7 +226,9 @@ mod tests {
         assert!(output.starts_with('['), "Output should start with '['");
 
         // Find the closing bracket for the timestamp.
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         // Extract the timestamp (without the leading '[').
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
@@ -234,7 +256,9 @@ mod tests {
         let output = capture_log(LogLevel::INFO, message);
 
         assert!(output.starts_with('['), "Output should start with '['");
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
 
@@ -258,7 +282,9 @@ mod tests {
         let output = capture_log(LogLevel::WARN, message);
 
         assert!(output.starts_with('['), "Output should start with '['");
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
 
@@ -282,7 +308,9 @@ mod tests {
         let output = capture_log(LogLevel::ERROR, message);
 
         assert!(output.starts_with('['), "Output should start with '['");
-        let end_timestamp = output.find("] ").expect("Missing closing bracket for timestamp");
+        let end_timestamp = output
+            .find("] ")
+            .expect("Missing closing bracket for timestamp");
         let timestamp = &output[1..end_timestamp];
         check_timestamp_format(timestamp);
 
@@ -315,7 +343,9 @@ mod tests {
         );
 
         // Alternatively, extract the part after the log level and confirm it is empty.
-        let pos = output.rfind(expected_ending).expect("Expected log level part missing");
+        let pos = output
+            .rfind(expected_ending)
+            .expect("Expected log level part missing");
         let message_part = &output[pos + expected_ending.len()..];
         assert!(
             message_part.is_empty(),
@@ -372,8 +402,12 @@ mod tests {
         let output2 = capture_log(LogLevel::INFO, "Second call");
 
         // Extract timestamp substrings from each output.
-        let end1 = output1.find("] ").expect("Missing closing bracket in first log");
-        let end2 = output2.find("] ").expect("Missing closing bracket in second log");
+        let end1 = output1
+            .find("] ")
+            .expect("Missing closing bracket in first log");
+        let end2 = output2
+            .find("] ")
+            .expect("Missing closing bracket in second log");
         let ts1 = &output1[1..end1];
         let ts2 = &output2[1..end2];
 

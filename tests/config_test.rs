@@ -1,6 +1,5 @@
 use katana::config::Config;
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -13,13 +12,17 @@ mod tests {
             "0.0.0.0".to_string()
         };
 
-        return host;
+        host
     }
 
     /// Test case for when no arguments are passed.
     #[test]
     fn test_no_arguments() {
-        let args = vec!["".to_string(), "--port".to_string(), "invalid_port".to_string()];
+        let args = vec![
+            "".to_string(),
+            "--port".to_string(),
+            "invalid_port".to_string(),
+        ];
         let config = Config::parse_args(args);
 
         assert_eq!(config.host, get_host());
@@ -31,7 +34,11 @@ mod tests {
     /// Test case for passing an invalid port value.
     #[test]
     fn test_invalid_port() {
-        let args = vec!["".to_string(), "--port".to_string(), "invalid_port".to_string()];
+        let args = vec![
+            "".to_string(),
+            "--port".to_string(),
+            "invalid_port".to_string(),
+        ];
         let config = Config::parse_args(args);
 
         assert_eq!(config.host, get_host());
@@ -68,7 +75,11 @@ mod tests {
     /// Test case for passing an invalid host value.
     #[test]
     fn test_invalid_host() {
-        let args = vec!["".to_string(), "--host".to_string(), "256.256.256.256".to_string()];
+        let args = vec![
+            "".to_string(),
+            "--host".to_string(),
+            "256.256.256.256".to_string(),
+        ];
         let config = Config::parse_args(args);
 
         assert_eq!(config.host, "256.256.256.256"); // Host accepts any string, no validation
@@ -80,7 +91,11 @@ mod tests {
     /// Test case for passing unexpected arguments.
     #[test]
     fn test_unexpected_arguments() {
-        let args = vec!["".to_string(), "--unknown".to_string(), "some_value".to_string()];
+        let args = vec![
+            "".to_string(),
+            "--unknown".to_string(),
+            "some_value".to_string(),
+        ];
         let config = Config::parse_args(args);
 
         assert_eq!(config.host, get_host()); // Default should still be used
@@ -92,7 +107,13 @@ mod tests {
     /// Test case for passing the port argument multiple times.
     #[test]
     fn test_multiple_port_specifications() {
-        let args = vec!["".to_string(), "--port".to_string(), "9090".to_string(), "--port".to_string(), "5000".to_string()];
+        let args = vec![
+            "".to_string(),
+            "--port".to_string(),
+            "9090".to_string(),
+            "--port".to_string(),
+            "5000".to_string(),
+        ];
         let config = Config::parse_args(args);
 
         assert_eq!(config.host, get_host());

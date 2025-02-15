@@ -1,13 +1,13 @@
-use std::io::Write;
-use std::net::{TcpListener, TcpStream};
-use std::thread;
 use crate::config::Config;
 use crate::http::{HttpMethod, HttpStatus};
-use crate::logger::{Logger, LogLevel};
+use crate::logger::{LogLevel, Logger};
 use crate::request::Request;
 use crate::response::Response;
 use crate::templates::Templates;
 use crate::utils::Utils;
+use std::io::Write;
+use std::net::{TcpListener, TcpStream};
+use std::thread;
 
 pub struct Server {
     config: Config,
@@ -17,21 +17,15 @@ pub struct Server {
 impl Server {
     const SERVER_NAME: &'static str = "Katana";
     const SERVER_VERSION: &'static str = "0.1.0";
-    pub const SUPPORTED_HTTP_METHODS: &'static[HttpMethod] = &[
+    pub const SUPPORTED_HTTP_METHODS: &'static [HttpMethod] = &[
         HttpMethod::GET,
         HttpMethod::HEAD,
         HttpMethod::OPTIONS,
         HttpMethod::TRACE,
     ];
 
-
     pub fn new(config: Config, templates: Templates) -> Self {
-        let http_server = Self {
-            config,
-            templates,
-        };
-
-        return http_server;
+        Self { config, templates }
     }
 
     pub fn serve(&self) {
@@ -65,7 +59,7 @@ impl Server {
             response.serve(&self.config.root_dir);
             self.method_handle(&mut response);
             self.server_transformation(&mut response);
-            let _ = stream.write_all(response.to_bytes().as_slice()).unwrap();
+            stream.write_all(response.to_bytes().as_slice()).unwrap();
             stream.flush().unwrap();
             Self::log_response(&response);
         } else {
@@ -82,12 +76,14 @@ impl Server {
     }
 
     pub fn version() -> String {
-        format!("{} {}", Self::SERVER_NAME.to_string(), Self::SERVER_VERSION.to_string())
+        format!("{} {}", Self::SERVER_NAME, Self::SERVER_VERSION)
     }
 
     pub fn server_transformation(&self, response: &mut Response) {
         // add to headers server name
-        response.headers.push(("Server".to_string(), Self::version()));
+        response
+            .headers
+            .push(("Server".to_string(), Self::version()));
     }
 
     pub fn method_handle(&self, response: &mut Response) {
@@ -105,11 +101,21 @@ impl Server {
             response.body = Vec::new();
 
             // headers
-            response.headers.push(("Date".to_string(), Utils::datetime_rfc_1123().to_string()));
-            response.headers.push(("Allow".to_string(), HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS)));
+            response
+                .headers
+                .push(("Date".to_string(), Utils::datetime_rfc_1123().to_string()));
+            response.headers.push((
+                "Allow".to_string(),
+                HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
+            ));
             // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            response.headers.push(("Access-Control-Allow-Origin".to_string(), "*".to_string()));
-            response.headers.push(("Access-Control-Allow-Methods".to_string(), HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS)));
+            response
+                .headers
+                .push(("Access-Control-Allow-Origin".to_string(), "*".to_string()));
+            response.headers.push((
+                "Access-Control-Allow-Methods".to_string(),
+                HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
+            ));
             // response.headers.push(("Access-Control-Allow-Headers".to_string(), "content-type, accept".to_string()));
         }
 
@@ -125,13 +131,17 @@ impl Server {
             response.headers.clear();
 
             // correct type
-            response.headers.push(("Content-Type".to_string(), "message/http".to_string()));
+            response
+                .headers
+                .push(("Content-Type".to_string(), "message/http".to_string()));
 
             // new body
             let body = format!("\r\n{}", response.request.http_description());
 
             // new body length
-            response.headers.push(("Content-Length".to_string(), body.len().to_string()));
+            response
+                .headers
+                .push(("Content-Length".to_string(), body.len().to_string()));
 
             // set new body
             response.body = body.into_bytes();
@@ -142,14 +152,23 @@ impl Server {
             response.body = Vec::new();
             // headers
             response.headers.clear();
-            response.headers.push(("Allow".to_string(), HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS)));
+            response.headers.push((
+                "Allow".to_string(),
+                HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
+            ));
             // status
             response.status_code = HttpStatus::MethodNotAllowed;
         }
     }
 
     pub fn log_response(response: &Response) {
-        let status_line = response.request.to_string().lines().next().unwrap().to_string();
+        let status_line = response
+            .request
+            .to_string()
+            .lines()
+            .next()
+            .unwrap()
+            .to_string();
         let log_message = &format!(
             "\"{}\" {} {}",
             status_line,

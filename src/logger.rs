@@ -16,7 +16,7 @@ impl LogLevel {
             LogLevel::DEBUG => "DEBUG",
             LogLevel::INFO => "INFO",
             LogLevel::WARN => "WARN",
-            LogLevel::ERROR => "ERROR"
+            LogLevel::ERROR => "ERROR",
         }
     }
 }
@@ -38,13 +38,13 @@ impl Logger {
         let at = Self::current_datetime();
         let level_str = level.as_str();
         let log_message = format!("[{}] [{}] {}", at, level_str, message);
-        return log_message;
+        log_message
     }
 
     fn current_timestamp() -> u64 {
         let now = SystemTime::now().duration_since(UNIX_EPOCH);
-        let timestamp = now.unwrap().as_secs();
-        return timestamp;
+
+        now.unwrap().as_secs()
     }
 
     fn current_datetime() -> String {
@@ -55,8 +55,16 @@ impl Logger {
         let minutes = (seconds % 3600) / 60;
         let seconds = seconds % 60;
 
-        let datetime = format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02}", 1970 + days / 365, (days % 365) / 30 + 1, days % 30 + 1, hours, minutes, seconds);
+        let datetime = format!(
+            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+            1970 + days / 365,
+            (days % 365) / 30 + 1,
+            days % 30 + 1,
+            hours,
+            minutes,
+            seconds
+        );
 
-        return datetime;
+        datetime
     }
 }
