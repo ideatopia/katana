@@ -81,7 +81,7 @@ impl Response {
                 let extension = path.extension().unwrap().to_str().unwrap();
 
                 let file_type = FileType::from_extension(extension)
-                    .unwrap_or_else(|| FileType::new("bin", "application/octet-stream", "Binary File"));
+                    .unwrap_or_else(|| FileType::new("bin", "application/octet-stream"));
 
                 // @see: https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Disposition
                 let content_disposition = file_type.content_disposition();
