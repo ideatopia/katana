@@ -5,8 +5,9 @@ use crate::request::Request;
 use crate::response::Response;
 use crate::templates::Templates;
 use crate::utils::Utils;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::ops::DerefMut;
 use std::thread;
 
 pub struct Server {
@@ -54,13 +55,14 @@ impl Server {
         }
     }
 
-    pub fn handle_response(&self, request: Request, stream: &mut TcpStream) {
+    pub fn handle_response(&self, request: Request, mut stream: &mut TcpStream) {
         if let Some(mut response) = Response::new(request, self.templates.to_owned()) {
             response.serve(&self.config.root_dir);
             self.method_handle(&mut response);
             self.server_transformation(&mut response);
-            stream.write_all(response.to_bytes().as_slice()).unwrap();
-            stream.flush().unwrap();
+
+            response.stream(stream.deref_mut()).unwrap();
+
             Self::log_response(&response);
         } else {
             Logger::log(LogLevel::WARN, "Failed to send response.")

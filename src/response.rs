@@ -5,7 +5,8 @@ use crate::templates::{Templates, TemplatesPage};
 use crate::utils::Utils;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Error, Read, Write};
+use std::net::TcpStream;
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -248,5 +249,23 @@ impl Response {
         bytes.extend_from_slice(&self.body);
 
         bytes
+    }
+
+    pub fn stream(&self, mut stream: &mut TcpStream) -> Result<(), Error> {
+        // write the response headers
+        stream.write_all(self.http_description().as_bytes())?;
+        stream.write_all(b"\r\n")?; // separate headers from body
+
+        // stream the body in chunks
+        const CHUNK_SIZE: usize = 8192; // 8 KB
+        let mut start = 0;
+        while start < self.body.len() {
+            let end = (start + CHUNK_SIZE).min(self.body.len());
+            stream.write_all(&self.body[start..end])?;
+            start = end;
+        }
+
+        stream.flush()?;
+        Ok(())
     }
 }
