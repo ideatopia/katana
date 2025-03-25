@@ -18,6 +18,8 @@ pub struct Response {
     pub headers: Vec<(String, String)>,
     pub cookies: Vec<(String, String)>,
     pub body: Vec<u8>,
+    pub _path: PathBuf,
+    pub _need_stream: bool,
 }
 
 impl Response {
@@ -30,6 +32,8 @@ impl Response {
             headers: Vec::new(),
             cookies: Vec::new(),
             body: Vec::new(),
+            _path: PathBuf::new(),
+            _need_stream: false,
         };
 
         Some(response)
@@ -55,6 +59,8 @@ impl Response {
     }
 
     fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
+        self._path = root_path.join(&path);
+
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 
         let root_dir = root_path.to_str().unwrap();
@@ -87,21 +93,28 @@ impl Response {
                 // @see: https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Disposition
                 let content_disposition = file_type.content_disposition();
 
-                let mut content = Vec::new();
-                if file.read_to_end(&mut content).is_ok() {
-                    self.body = content;
-                    self.status_code = HttpStatus::Ok;
-                    self.headers.clear();
-                    self.headers.push((
-                        "Content-Type".to_string(),
-                        file_type.content_type.to_string(),
-                    ));
-                    self.headers
-                        .push(("Content-Length".to_string(), self.body.len().to_string()));
-                    self.headers.push((
-                        "Content-Disposition".to_string(),
-                        content_disposition.to_string(),
-                    ));
+                // get file size without reading
+                let metadata = std::fs::metadata(&path).expect("Unable to read metadata"); // self.body.len().to_string()
+                let file_size = metadata.len();
+
+                self.status_code = HttpStatus::Ok;
+                self.headers.clear();
+                self.headers.push((
+                    "Content-Type".to_string(),
+                    file_type.content_type.to_string(),
+                ));
+                self.headers
+                    .push(("Content-Length".to_string(), file_size.to_string()));
+                self.headers.push((
+                    "Content-Disposition".to_string(),
+                    content_disposition.to_string(),
+                ));
+
+                let metadata = std::fs::metadata(&self._path).expect("Unable to read metadata");
+                let is_readable = metadata.permissions().readonly();
+
+                if !is_readable {
+                    self._need_stream = true;
                 } else {
                     self.serve_error_response(HttpStatus::InternalServerError);
                 }
@@ -111,6 +124,8 @@ impl Response {
     }
 
     fn serve_directory(&mut self, root_path: &PathBuf, path: PathBuf) {
+        self._path = root_path.join(&path);
+
         let mut listing_html = String::new();
 
         let root_dir = root_path.to_str().unwrap();
@@ -251,18 +266,27 @@ impl Response {
         bytes
     }
 
-    pub fn stream(&self, mut stream: &mut TcpStream) -> Result<(), Error> {
+    pub fn stream(&mut self, mut stream: &mut TcpStream) -> Result<(), Error> {
+        const CHUNK_SIZE: usize = 8192; // 8 KB
+
+        if !self._need_stream {
+            stream.write_all(self.to_bytes().as_slice()).unwrap();
+            stream.flush().unwrap();
+            return Ok(());
+        }
+
         // write the response headers
         stream.write_all(self.http_description().as_bytes())?;
         stream.write_all(b"\r\n")?; // separate headers from body
 
-        // stream the body in chunks
-        const CHUNK_SIZE: usize = 8192; // 8 KB
-        let mut start = 0;
-        while start < self.body.len() {
-            let end = (start + CHUNK_SIZE).min(self.body.len());
-            stream.write_all(&self.body[start..end])?;
-            start = end;
+        let mut file = File::open(&self._path).unwrap();
+
+        let mut buffer = [0; CHUNK_SIZE];
+        while let Ok(size) = file.read(&mut buffer) {
+            if size == 0 {
+                break;
+            }
+            stream.write_all(&buffer[..size])?;
         }
 
         stream.flush()?;
