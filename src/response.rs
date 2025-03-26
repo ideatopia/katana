@@ -323,6 +323,20 @@ impl Response {
             return Ok(());
         }
 
+        let _ = match self.stream_by_chunk(stream) {
+            Ok(_) => Ok(()),
+            Err(error) => {
+                Logger::log(LogLevel::ERROR, format!("Error while streaming by chunk: {}", error).as_str());
+                self.serve_error_response(HttpStatus::InternalServerError);
+                stream.write_all(self.to_bytes().as_slice())?;
+                return Ok(());
+            },
+        };
+
+        Ok(())
+    }
+
+    fn stream_by_chunk(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
         // write the response headers
         stream.write_all(self.http_description().as_bytes())?;
         stream.write_all(b"\r\n")?; // separate headers from body
@@ -338,6 +352,7 @@ impl Response {
         }
 
         stream.flush()?;
+
         Ok(())
     }
 }
