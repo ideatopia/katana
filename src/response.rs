@@ -130,8 +130,6 @@ impl Response {
     }
 
     fn serve_directory(&mut self, root_path: &PathBuf, path: PathBuf) {
-        self._path = root_path.join(&path);
-
         let mut listing_html = String::new();
 
         let root_dir = root_path.to_str().unwrap();
@@ -149,6 +147,8 @@ impl Response {
             self.serve_error_response(HttpStatus::Forbidden);
             return;
         }
+
+        self._path = path.to_owned();
 
         let entries = Utils::walk_dir(&path);
         let mut folders = Vec::new();
