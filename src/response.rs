@@ -27,7 +27,7 @@ pub struct Response {
 }
 
 impl Response {
-    pub const CHUNK_SIZE: usize = 8192; // 8 KB
+    pub const CHUNK_SIZE: usize = 1024; // 1 KB
     pub const MAX_SIZE_ALL_AT_ONCE: usize = 1048576; // 1MB
 
     pub fn new(request: Request, templates: Templates) -> Option<Self> {
