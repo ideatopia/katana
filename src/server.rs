@@ -5,7 +5,6 @@ use crate::request::Request;
 use crate::response::Response;
 use crate::templates::Templates;
 use crate::utils::Utils;
-use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::ops::DerefMut;
 use std::thread;
