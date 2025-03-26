@@ -323,7 +323,7 @@ impl Response {
             return Ok(());
         }
 
-        let _ = match self.stream_by_chunk(stream) {
+        let _ : Result<(), Error>  = match self.stream_by_chunk(stream) {
             Ok(_) => Ok(()),
             Err(error) => {
                 Logger::log(LogLevel::ERROR, format!("Error while streaming by chunk: {}", error).as_str());
