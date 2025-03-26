@@ -60,9 +60,13 @@ impl Server {
             self.method_handle(&mut response);
             self.server_transformation(&mut response);
 
-            response.stream(stream.deref_mut()).unwrap();
-
-            Self::log_response(&response);
+            let result = response.stream(stream.deref_mut());
+            match result {
+                Ok(_response) => { Self::log_response(&response) },
+                Err(e) => {
+                    Logger::log(LogLevel::ERROR, e.to_string().as_str())
+                },
+            }
         } else {
             Logger::log(LogLevel::WARN, "Failed to send response.")
         }
