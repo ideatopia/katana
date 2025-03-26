@@ -1,3 +1,4 @@
+use std::cmp::min;
 use crate::filetype::FileType;
 use crate::http::{HttpStatus, HttpVersion};
 use crate::request::Request;
@@ -5,7 +6,7 @@ use crate::templates::{Templates, TemplatesPage};
 use crate::utils::Utils;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{Error, Read, Write};
+use std::io::{Error, Read, Seek, SeekFrom, Write};
 use std::net::TcpStream;
 use std::path::PathBuf;
 use crate::logger::{Logger, LogLevel};
@@ -67,8 +68,6 @@ impl Response {
     }
 
     fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
-        self._path = root_path.join(&path);
-
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 
         let root_dir = root_path.to_str().unwrap();
@@ -90,6 +89,8 @@ impl Response {
             self.serve_error_response(HttpStatus::Forbidden);
             return;
         }
+
+        self._path = path.to_owned();
 
         match File::open(&path) {
             Ok(_file) => {
@@ -329,18 +330,100 @@ impl Response {
     }
 
     fn stream_by_chunk(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
-        // write the response headers
-        stream.write_all(self.http_description().as_bytes())?;
-        stream.write_all(b"\r\n")?; // separate headers from body
+        // @see: https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Status/206
+        // @see: https://www.rfc-editor.org/rfc/rfc2616.html#section-14.35
 
-        let mut file = File::open(&self._path).unwrap();
-
-        let mut buffer = [0; Self::CHUNK_SIZE];
-        while let Ok(size) = file.read(&mut buffer) {
-            if size == 0 {
-                break;
+        // handle file opening with proper error handling
+        let mut file = match File::open(&self._path) {
+            Ok(file) => file,
+            Err(_) => {
+                Logger::log(LogLevel::ERROR, format!("Failed to open file: {}", self._path.display()).as_str());
+                self.serve_error_response(HttpStatus::NotFound);
+                stream.write_all(self.to_bytes().as_slice())?;
+                stream.flush()?;
+                return Ok(());
             }
-            stream.write_all(&buffer[..size])?;
+        };
+
+        Logger::log(LogLevel::DEBUG, format!("[Response] Sending response in chunks with size: {}", self._size).as_str());
+
+        self.headers.push(("Content-Length".to_string(), self._size.to_string()));
+
+        // @see: https://datatracker.ietf.org/doc/html/rfc7233
+        self.headers.push(("Accept-Ranges".to_string(), "bytes".to_string()));
+
+        // check if range header is present
+        if let Some(range) = self.request.headers.iter().find(|(k, _)| k == "Range").map(|(_, v)| v) {
+            // parse range header value and extract bytes start, end
+            if !range.starts_with("bytes=") {
+                self.serve_error_response(HttpStatus::BadRequest);
+                stream.write_all(self.to_bytes().as_slice())?;
+                stream.flush()?;
+                return Ok(());
+            }
+
+            let range_values: Vec<&str> = range[6..].split('-').collect();
+            if range_values.len() != 2 {
+                self.serve_error_response(HttpStatus::BadRequest);
+                stream.write_all(self.to_bytes().as_slice())?;
+                stream.flush()?;
+                return Ok(());
+            }
+
+            let start = range_values[0].parse::<usize>().unwrap_or(0);
+            let end = range_values[1].parse::<usize>().unwrap_or(self._size - 1);
+
+            if start >= self._size || end >= self._size || start > end {
+                // return http 416 Range Not Satisfiable
+                // @see: https://http.dev/416
+                self.status_code = HttpStatus::RangeNotSatisfiable;
+                self.headers.push(("Content-Range".to_string(), format!("bytes */{}", self._size)));
+                stream.write_all(self.http_description().as_bytes())?;
+                stream.write_all(b"\r\n")?;
+                stream.flush()?;
+                return Ok(());
+            }
+
+            // set status code for response to 206
+            self.status_code = HttpStatus::PartialContent;
+            self.headers.push(("Content-Range".to_string(),
+                               format!("bytes {}-{}/{}", start, end, self._size)));
+            self.headers.push(("Content-Length".to_string(),
+                               (end - start + 1).to_string()));
+
+            stream.write_all(self.http_description().as_bytes())?;
+            stream.write_all(b"\r\n")?;
+
+            // set start position to avoid reading the whole file
+            file.seek(SeekFrom::Start(start as u64))?;
+
+            // stream the requested range in chunks
+            let mut remaining = end - start + 1;
+            let mut buffer = vec![0; min(Response::CHUNK_SIZE, remaining)];
+
+            while remaining > 0 {
+                let to_read = min(buffer.len(), remaining);
+                let bytes_read = file.read(&mut buffer[..to_read])?;
+                if bytes_read == 0 {
+                    break;
+                }
+                stream.write_all(&buffer[..bytes_read])?;
+                remaining -= bytes_read;
+            }
+        } else {
+            // no range header, stream entire file
+            stream.write_all(self.http_description().as_bytes())?;
+            stream.write_all(b"\r\n")?;
+
+            // stream the file in chunks
+            let mut buffer = vec![0; Response::CHUNK_SIZE];
+            loop {
+                let bytes_read = file.read(&mut buffer)?;
+                if bytes_read == 0 {
+                    break;
+                }
+                stream.write_all(&buffer[..bytes_read])?;
+            }
         }
 
         stream.flush()?;
