@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::{Error, Read, Write};
 use std::net::TcpStream;
 use std::path::PathBuf;
+use crate::logger::{Logger, LogLevel};
 
 #[derive(Debug)]
 pub struct Response {
@@ -281,6 +282,22 @@ impl Response {
     }
 
     pub fn stream(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
+        if self._is_compiled {
+            if self.body.len() == 0 {
+                Logger::log(LogLevel::ERROR, "Body is empty while expecting body to have compiled content");
+                self.serve_error_response(HttpStatus::InternalServerError);
+                stream.write_all(self.to_bytes().as_slice())?;
+                stream.flush()?;
+                return Ok(());
+            }
+
+            self.headers.push(("Content-Length".to_string(), self.body.len().to_string()));
+
+            stream.write_all(self.to_bytes().as_slice())?;
+            stream.flush()?;
+            return Ok(());
+        }
+
         if !self._need_stream {
             stream.write_all(self.to_bytes().as_slice()).unwrap();
             stream.flush().unwrap();
