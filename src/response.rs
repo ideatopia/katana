@@ -18,6 +18,7 @@ pub struct Response {
     pub headers: Vec<(String, String)>,
     pub cookies: Vec<(String, String)>,
     pub body: Vec<u8>,
+    pub _size: usize,
     pub _path: PathBuf,
     pub _need_stream: bool,
 }
@@ -32,6 +33,7 @@ impl Response {
             headers: Vec::new(),
             cookies: Vec::new(),
             body: Vec::new(),
+            _size: 0,
             _path: PathBuf::new(),
             _need_stream: false,
         };
@@ -109,6 +111,8 @@ impl Response {
                     "Content-Disposition".to_string(),
                     content_disposition.to_string(),
                 ));
+
+                self._size = file_size as usize;
 
                 let metadata = std::fs::metadata(&self._path).expect("Unable to read metadata");
                 let is_readable = metadata.permissions().readonly();
@@ -194,6 +198,8 @@ impl Response {
             .push(("Content-Type".to_string(), "text/html".to_string()));
         self.headers
             .push(("Content-Length".to_string(), self.body.len().to_string()));
+
+        self._size = self.body.len()
     }
 
     fn serve_error_response(&mut self, status: HttpStatus) {
@@ -215,6 +221,8 @@ impl Response {
             .push(("Content-Type".to_string(), "text/html".to_string()));
         self.headers
             .push(("Content-Length".to_string(), self.body.len().to_string()));
+
+        self._size = self.body.len()
     }
 
     pub fn http_description(&self) -> String {

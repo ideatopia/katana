@@ -178,7 +178,7 @@ impl Server {
             "\"{}\" {} {}",
             status_line,
             response.status_code.to_code(),
-            response.body.len(),
+            response._size,
         );
         Logger::log(LogLevel::INFO, log_message);
     }
