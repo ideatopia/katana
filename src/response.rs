@@ -299,8 +299,27 @@ impl Response {
         }
 
         if !self._need_stream {
+            let mut file = match File::open(&self._path) {
+                Ok(file) => file,
+                Err(_) => {
+                    Logger::log(LogLevel::ERROR, format!("Failed to open file: {}", self._path.display()).as_str());
+                    self.serve_error_response(HttpStatus::NotFound);
+                    stream.write_all(self.to_bytes().as_slice())?;
+                    stream.flush()?;
+                    return Ok(());
+                }
+            };
+
+            // read into a buffer
+            let mut buffer = vec![0; self._size];
+            file.read_exact(&mut buffer)?;
+            self.body = buffer;
+
+            self.headers
+                .push(("Content-Length".to_string(), self.body.len().to_string()));
+
             stream.write_all(self.to_bytes().as_slice()).unwrap();
-            stream.flush().unwrap();
+            stream.flush()?;
             return Ok(());
         }
 
