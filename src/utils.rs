@@ -115,23 +115,59 @@ impl Utils {
         if let Ok(duration) = now.duration_since(UNIX_EPOCH) {
             let secs = duration.as_secs();
 
-            // Convert seconds to date components using basic arithmetic
+            // Convert seconds to date components
             let days_since_epoch = secs / 86400;
-            let years_since_epoch = 1970 + (days_since_epoch / 365);
-            let mut remaining_days = (days_since_epoch % 365) as i32;
+            let mut year = 1970;
+            let mut days = days_since_epoch as i32;
 
-            // Simple month calculation (approximate)
-            let month_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-            let mut month = 1;
-            for days in month_days.iter() {
-                if remaining_days - days <= 0 {
-                    break;
-                }
-                remaining_days -= days;
-                month += 1;
+            // Function to check leap year
+            fn is_leap_year(year: i32) -> bool {
+                (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
             }
 
-            let day = remaining_days + 1;
+            // Adjust for years
+            while days >= (if is_leap_year(year) { 366 } else { 365 }) {
+                days -= if is_leap_year(year) { 366 } else { 365 };
+                year += 1;
+            }
+
+            // Days in each month (adjust for leap year)
+            let month_days = [
+                31, if is_leap_year(year) { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+            ];
+            let month_names = [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+            ];
+
+            // Find current month and day
+            let mut month = 0;
+            while days >= month_days[month] {
+                days -= month_days[month];
+                month += 1;
+            }
+            let day = days + 1;
+
+            // Compute the day of the week using Zeller’s Congruence
+            let mut m: i32 = month as i32 + 1; // Adjusting month to 1-based index
+            let mut y: i32 = year;
+
+            if m <= 2 {
+                m += 12; // Jan, Feb become 13, 14
+                y -= 1;  // Adjust year
+            }
+
+            let k: i32 = y % 100;
+            let j: i32 = y / 100;
+
+            // Apply Zeller’s Congruence formula
+            let h: i32 = (day + ((13 * (m + 1)) / 5) + k + (k / 4) + (j / 4) + (5 * j)) % 7;
+
+            // Ensure h is positive
+            let h = (h + 7) % 7;
+
+            // Correct mapping (0 = Saturday, 1 = Sunday, ..., 6 = Friday)
+            let weekday_names = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+            let weekday = weekday_names[h as usize];
 
             // Time components
             let secs_of_day = secs % 86400;
@@ -139,31 +175,10 @@ impl Utils {
             let minutes = (secs_of_day % 3600) / 60;
             let seconds = secs_of_day % 60;
 
-            // Day of the week and month names
-            let weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            let months = [
-                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-            ];
-
-            // Calculate day of the week (simple Zeller's congruence)
-            let mut year = years_since_epoch;
-            let mut month = month - 1; // Zero-indexed for Zeller's formula
-            if month < 2 {
-                month += 12;
-                year -= 1;
-            }
-            let k = (year % 100) as i32; // Cast k to i32
-            let j = (year / 100) as i32; // Cast j to i32
-            let h = (day + ((13 * (month + 1)) / 5) + k + (k / 4) + (j / 4) - (2 * j)) % 7;
-            let h = if h < 0 { h + 7 } else { h }; // Ensure h is within 0..=6
-            let weekday = weekdays[h as usize % 7]; // Ensure h is within bounds
-
-            let month = month % 12; // Ensure month is within 0..=11
-            let monthday = months[month as usize];
-
+            // Format as RFC 1123
             format!(
                 "{}, {:02} {} {:04} {:02}:{:02}:{:02} GMT",
-                weekday, day, monthday, years_since_epoch, hours, minutes, seconds
+                weekday, day, month_names[month], year, hours, minutes, seconds
             )
         } else {
             String::new() // Return empty string if there's an error
