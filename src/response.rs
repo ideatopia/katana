@@ -84,7 +84,7 @@ impl Response {
         }
 
         match File::open(&path) {
-            Ok(mut file) => {
+            Ok(_file) => {
                 let extension = path.extension().unwrap().to_str().unwrap();
 
                 let file_type = FileType::from_extension(extension)
@@ -266,7 +266,7 @@ impl Response {
         bytes
     }
 
-    pub fn stream(&mut self, mut stream: &mut TcpStream) -> Result<(), Error> {
+    pub fn stream(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
         const CHUNK_SIZE: usize = 8192; // 8 KB
 
         if !self._need_stream {
