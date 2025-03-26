@@ -126,12 +126,6 @@ impl Response {
                     "Content-Disposition".to_string(),
                     content_disposition.to_string(),
                 ));
-
-                if !is_readable {
-                    self._need_stream = true;
-                } else {
-                    self.serve_error_response(HttpStatus::InternalServerError);
-                }
             }
             Err(_) => self.serve_error_response(HttpStatus::NotFound),
         }
