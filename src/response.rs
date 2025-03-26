@@ -110,8 +110,6 @@ impl Response {
                     "Content-Type".to_string(),
                     file_type.content_type.to_string(),
                 ));
-                self.headers
-                    .push(("Content-Length".to_string(), file_size.to_string()));
                 self.headers.push((
                     "Content-Disposition".to_string(),
                     content_disposition.to_string(),
@@ -203,8 +201,6 @@ impl Response {
         self.headers.clear();
         self.headers
             .push(("Content-Type".to_string(), "text/html".to_string()));
-        self.headers
-            .push(("Content-Length".to_string(), self.body.len().to_string()));
 
         self._size = self.body.len()
     }
@@ -226,8 +222,6 @@ impl Response {
         self.headers.clear();
         self.headers
             .push(("Content-Type".to_string(), "text/html".to_string()));
-        self.headers
-            .push(("Content-Length".to_string(), self.body.len().to_string()));
 
         self._size = self.body.len()
     }
@@ -282,6 +276,8 @@ impl Response {
     }
 
     pub fn stream(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
+        self.headers.push(("Content-Length".to_string(), self._size.to_string()));
+
         if self._is_compiled {
             if self.body.len() == 0 {
                 Logger::log(LogLevel::ERROR, "Body is empty while expecting body to have compiled content");
@@ -290,8 +286,6 @@ impl Response {
                 stream.flush()?;
                 return Ok(());
             }
-
-            self.headers.push(("Content-Length".to_string(), self.body.len().to_string()));
 
             stream.write_all(self.to_bytes().as_slice())?;
             stream.flush()?;
@@ -314,9 +308,6 @@ impl Response {
             let mut buffer = vec![0; self._size];
             file.read_exact(&mut buffer)?;
             self.body = buffer;
-
-            self.headers
-                .push(("Content-Length".to_string(), self.body.len().to_string()));
 
             stream.write_all(self.to_bytes().as_slice()).unwrap();
             stream.flush()?;
