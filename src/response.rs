@@ -24,6 +24,8 @@ pub struct Response {
 }
 
 impl Response {
+    pub const CHUNK_SIZE: usize = 8192; // 8 KB
+
     pub fn new(request: Request, templates: Templates) -> Option<Self> {
         let response = Self {
             request: request.clone(),
@@ -275,8 +277,6 @@ impl Response {
     }
 
     pub fn stream(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
-        const CHUNK_SIZE: usize = 8192; // 8 KB
-
         if !self._need_stream {
             stream.write_all(self.to_bytes().as_slice()).unwrap();
             stream.flush().unwrap();
@@ -289,7 +289,7 @@ impl Response {
 
         let mut file = File::open(&self._path).unwrap();
 
-        let mut buffer = [0; CHUNK_SIZE];
+        let mut buffer = [0; Self::CHUNK_SIZE];
         while let Ok(size) = file.read(&mut buffer) {
             if size == 0 {
                 break;
