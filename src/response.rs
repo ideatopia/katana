@@ -21,6 +21,7 @@ pub struct Response {
     pub _size: usize,
     pub _path: PathBuf,
     pub _need_stream: bool,
+    pub _is_compiled: bool,
 }
 
 impl Response {
@@ -38,6 +39,7 @@ impl Response {
             _size: 0,
             _path: PathBuf::new(),
             _need_stream: false,
+            _is_compiled: false,
         };
 
         Some(response)
@@ -130,6 +132,8 @@ impl Response {
     }
 
     fn serve_directory(&mut self, root_path: &PathBuf, path: PathBuf) {
+        self._is_compiled = true;
+
         let mut listing_html = String::new();
 
         let root_dir = root_path.to_str().unwrap();
