@@ -27,6 +27,7 @@ pub struct Response {
 
 impl Response {
     pub const CHUNK_SIZE: usize = 8192; // 8 KB
+    pub const MAX_SIZE_ALL_AT_ONCE: usize = 1048576; // 1MB
 
     pub fn new(request: Request, templates: Templates) -> Option<Self> {
         let response = Self {
@@ -103,6 +104,17 @@ impl Response {
                 // get file size without reading
                 let metadata = std::fs::metadata(&path).expect("Unable to read metadata"); // self.body.len().to_string()
                 let file_size = metadata.len();
+                let is_readable = metadata.permissions().readonly();
+
+                if !is_readable {
+                    self.serve_error_response(HttpStatus::InternalServerError);
+                }
+
+                self._size = file_size as usize;
+
+                if self._size > Response::MAX_SIZE_ALL_AT_ONCE {
+                    self._need_stream = true;
+                }
 
                 self.status_code = HttpStatus::Ok;
                 self.headers.clear();
@@ -114,11 +126,6 @@ impl Response {
                     "Content-Disposition".to_string(),
                     content_disposition.to_string(),
                 ));
-
-                self._size = file_size as usize;
-
-                let metadata = std::fs::metadata(&self._path).expect("Unable to read metadata");
-                let is_readable = metadata.permissions().readonly();
 
                 if !is_readable {
                     self._need_stream = true;
