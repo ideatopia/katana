@@ -70,24 +70,34 @@ impl Utils {
         let now = SystemTime::now();
         if let Ok(duration) = now.duration_since(UNIX_EPOCH) {
             let secs = duration.as_secs();
+            let millis = duration.subsec_millis(); // Extract milliseconds
 
-            // Convert seconds to date components using basic arithmetic
             let days_since_epoch = secs / 86400;
-            let years_since_epoch = 1970 + (days_since_epoch / 365);
-            let mut remaining_days = (days_since_epoch % 365) as i32;
+            let mut year = 1970;
+            let mut days = days_since_epoch as i32;
 
-            // Simple month calculation (approximate)
-            let month_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-            let mut month = 1;
-            for days in month_days.iter() {
-                if remaining_days - days <= 0 {
-                    break;
-                }
-                remaining_days -= days;
-                month += 1;
+            // Function to check leap year
+            fn is_leap_year(year: i32) -> bool {
+                (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
             }
 
-            let day = remaining_days + 1;
+            // Adjust for years
+            while days >= (if is_leap_year(year) { 366 } else { 365 }) {
+                days -= if is_leap_year(year) { 366 } else { 365 };
+                year += 1;
+            }
+
+            // Days in each month (adjust for leap year)
+            let month_days = [
+                31, if is_leap_year(year) { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+            ];
+
+            let mut month = 0;
+            while days >= month_days[month] {
+                days -= month_days[month];
+                month += 1;
+            }
+            let day = days + 1;
 
             // Time components
             let secs_of_day = secs % 86400;
@@ -96,14 +106,14 @@ impl Utils {
             let seconds = secs_of_day % 60;
 
             format!(
-                "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z+{}",
-                years_since_epoch,
-                month,
+                "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+                year,
+                month + 1, // Convert to 1-based month
                 day,
                 hours,
                 minutes,
                 seconds,
-                Self::timezone_from_env()
+                millis // Include milliseconds
             )
         } else {
             String::new()
