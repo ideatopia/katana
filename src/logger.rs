@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::time::{SystemTime, UNIX_EPOCH};
+use crate::utils::Utils;
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -35,36 +35,9 @@ impl Logger {
     }
 
     fn build_log_message(level: LogLevel, message: &str) -> String {
-        let at = Self::current_datetime();
+        let at = Utils::log_datetime();
         let level_str = level.as_str();
         let log_message = format!("[{}] [{}] {}", at, level_str, message);
         log_message
-    }
-
-    fn current_timestamp() -> u64 {
-        let now = SystemTime::now().duration_since(UNIX_EPOCH);
-
-        now.unwrap().as_secs()
-    }
-
-    fn current_datetime() -> String {
-        let seconds = Self::current_timestamp();
-
-        let days = seconds / 86400;
-        let hours = (seconds % 86400) / 3600;
-        let minutes = (seconds % 3600) / 60;
-        let seconds = seconds % 60;
-
-        let datetime = format!(
-            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
-            1970 + days / 365,
-            (days % 365) / 30 + 1,
-            days % 30 + 1,
-            hours,
-            minutes,
-            seconds
-        );
-
-        datetime
     }
 }

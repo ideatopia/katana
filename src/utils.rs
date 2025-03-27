@@ -194,4 +194,26 @@ impl Utils {
             String::new() // Return empty string if there's an error
         }
     }
+
+    pub fn log_datetime() -> String {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH);
+        let seconds = now.unwrap().as_secs();
+
+        let days = seconds / 86400;
+        let hours = (seconds % 86400) / 3600;
+        let minutes = (seconds % 3600) / 60;
+        let seconds = seconds % 60;
+
+        let datetime = format!(
+            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+            1970 + days / 365,
+            (days % 365) / 30 + 1,
+            days % 30 + 1,
+            hours,
+            minutes,
+            seconds
+        );
+
+        datetime
+    }
 }
