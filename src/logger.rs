@@ -24,6 +24,26 @@ impl LogLevel {
 pub struct Logger;
 
 impl Logger {
+    pub fn debug(message: &str) {
+        let log_message = Self::build_log_message(LogLevel::DEBUG, message);
+        println!("{}", log_message);
+    }
+
+    pub fn info(message: &str) {
+        let log_message = Self::build_log_message(LogLevel::INFO, message);
+        println!("{}", log_message);
+    }
+
+    pub fn warn(message: &str) {
+        let log_message = Self::build_log_message(LogLevel::WARN, message);
+        println!("{}", log_message);
+    }
+
+    pub fn error(message: &str) {
+        let log_message = Self::build_log_message(LogLevel::ERROR, message);
+        println!("{}", log_message);
+    }
+
     pub fn log(level: LogLevel, message: &str) {
         let log_message = Self::build_log_message(level, message);
         println!("{}", log_message);
