@@ -1,5 +1,5 @@
 use crate::http::{HttpMethod, HttpVersion};
-use crate::logger::{LogLevel, Logger};
+use crate::logger::Logger;
 use crate::server::Server;
 use std::io::{BufRead, BufReader, Read};
 use std::net::TcpStream;
@@ -90,7 +90,7 @@ impl Request {
                 if let Ok(content_length) = cl_value.trim().parse::<usize>() {
                     let mut buf = vec![0; content_length];
                     if let Err(e) = reader.read_exact(&mut buf) {
-                        Logger::log(LogLevel::WARN, &format!("Error reading body: {}", e));
+                        Logger::warn(&format!("Error reading body: {}", e));
                         return None;
                     }
                     // assuming the body is UTF-8 encoded text
@@ -98,8 +98,7 @@ impl Request {
                 }
             }
         } else {
-            Logger::log(
-                LogLevel::WARN,
+            Logger::warn(
                 &format!(
                     "Method '{}' on '{}' is disable",
                     method.as_str(),

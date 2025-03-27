@@ -1,4 +1,4 @@
-use crate::logger::{LogLevel, Logger};
+use crate::logger::Logger;
 use std::env::args;
 use std::path::PathBuf;
 
@@ -56,7 +56,7 @@ impl Config {
                             if parsed_worker > Self::MIN_WORKER {
                                 worker = parsed_worker;
                             } else {
-                                Logger::log(LogLevel::ERROR, "worker cannot be less than 1");
+                                Logger::error("worker cannot be less than 1");
                             }
                         }
                         i += 1;

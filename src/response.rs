@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom, Write};
 use std::net::TcpStream;
 use std::path::PathBuf;
-use crate::logger::{Logger, LogLevel};
+use crate::logger::Logger;
 
 #[derive(Debug)]
 pub struct Response {
@@ -282,7 +282,7 @@ impl Response {
 
         if self._is_compiled {
             if self.body.len() == 0 {
-                Logger::log(LogLevel::ERROR, "Body is empty while expecting body to have compiled content");
+                Logger::error("Body is empty while expecting body to have compiled content");
                 self.serve_error_response(HttpStatus::InternalServerError);
                 stream.write_all(self.to_bytes().as_slice())?;
                 stream.flush()?;
@@ -298,7 +298,7 @@ impl Response {
             let mut file = match File::open(&self._path) {
                 Ok(file) => file,
                 Err(_) => {
-                    Logger::log(LogLevel::ERROR, format!("Failed to open file: {}", self._path.display()).as_str());
+                    Logger::error(format!("Failed to open file: {}", self._path.display()).as_str());
                     self.serve_error_response(HttpStatus::NotFound);
                     stream.write_all(self.to_bytes().as_slice())?;
                     stream.flush()?;
@@ -319,7 +319,7 @@ impl Response {
         let _ : Result<(), Error>  = match self.stream_by_chunk(stream) {
             Ok(_) => Ok(()),
             Err(error) => {
-                Logger::log(LogLevel::ERROR, format!("Error while streaming by chunk: {}", error).as_str());
+                Logger::error(format!("Error while streaming by chunk: {}", error).as_str());
                 self.serve_error_response(HttpStatus::InternalServerError);
                 stream.write_all(self.to_bytes().as_slice())?;
                 return Ok(());
@@ -337,7 +337,7 @@ impl Response {
         let mut file = match File::open(&self._path) {
             Ok(file) => file,
             Err(_) => {
-                Logger::log(LogLevel::ERROR, format!("Failed to open file: {}", self._path.display()).as_str());
+                Logger::error(format!("Failed to open file: {}", self._path.display()).as_str());
                 self.serve_error_response(HttpStatus::NotFound);
                 stream.write_all(self.to_bytes().as_slice())?;
                 stream.flush()?;
@@ -345,7 +345,7 @@ impl Response {
             }
         };
 
-        Logger::log(LogLevel::DEBUG, format!("[Response] Sending response in chunks with size: {}", self._size).as_str());
+        Logger::debug(format!("[Response] Sending response in chunks with size: {}", self._size).as_str());
 
         self.headers.push(("Content-Length".to_string(), self._size.to_string()));
 

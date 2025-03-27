@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::logger::{LogLevel, Logger};
+use crate::logger::Logger;
 use crate::server::Server;
 use crate::templates::{Templates, TemplatesPage};
 use std::collections::HashMap;
@@ -36,8 +36,7 @@ impl Katana {
     pub fn start(&self) {
         self.show_banner();
         let server = Server::new(self.config.to_owned(), self.templates.to_owned());
-        Logger::log(
-            LogLevel::INFO,
+        Logger::info(
             format!("Server starting on {}", server.addr_with_protocol()).as_str(),
         );
         server.serve();

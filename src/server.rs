@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::http::{HttpMethod, HttpStatus};
-use crate::logger::{LogLevel, Logger};
+use crate::logger::Logger;
 use crate::request::Request;
 use crate::response::Response;
 use crate::templates::Templates;
@@ -50,7 +50,7 @@ impl Server {
         if let Some(request) = Request::from_stream(&stream) {
             self.handle_response(request, &mut stream);
         } else {
-            Logger::log(LogLevel::WARN, "Failed to read request.")
+            Logger::warn("Failed to read request.")
         }
     }
 
@@ -64,11 +64,11 @@ impl Server {
             match result {
                 Ok(_response) => { Self::log_response(&response) },
                 Err(e) => {
-                    Logger::log(LogLevel::ERROR, e.to_string().as_str())
+                    Logger::error(e.to_string().as_str())
                 },
             }
         } else {
-            Logger::log(LogLevel::WARN, "Failed to send response.")
+            Logger::warn("Failed to send response.")
         }
     }
 
@@ -180,6 +180,6 @@ impl Server {
             response.status_code.to_code(),
             response._size,
         );
-        Logger::log(LogLevel::INFO, log_message);
+        Logger::info(log_message);
     }
 }
