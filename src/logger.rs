@@ -1,13 +1,13 @@
 use std::io::Write;
 use crate::utils::Utils;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[allow(dead_code)]
 pub enum LogLevel {
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR,
+    DEBUG = 0,
+    INFO = 1,
+    WARN = 2,
+    ERROR = 3,
 }
 
 impl LogLevel {
@@ -17,6 +17,20 @@ impl LogLevel {
             LogLevel::INFO => "INFO",
             LogLevel::WARN => "WARN",
             LogLevel::ERROR => "ERROR",
+        }
+    }
+
+    pub fn should_log(&self, min_level: &LogLevel) -> bool {
+        self >= min_level
+    }
+
+    pub fn from_str(level: &str) -> Option<Self> {
+        match level {
+            "DEBUG" => Some(LogLevel::DEBUG),
+            "INFO" => Some(LogLevel::INFO),
+            "WARN" => Some(LogLevel::WARN),
+            "ERROR" => Some(LogLevel::ERROR),
+            _ => None,
         }
     }
 }
