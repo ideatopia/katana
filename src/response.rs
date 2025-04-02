@@ -49,18 +49,24 @@ impl Response {
     }
 
     pub fn serve(&mut self, root_dir: &PathBuf) -> &mut Response {
-        let file_path = root_dir.join(&self.request.path[1..]); // Remove leading "/"
-
+        Logger::debug(format!("[Response] Serving request for path: {}", self.request.path).as_str());
+        
+        let file_path = root_dir.join(&self.request.path[1..]);
+        
         if file_path.is_dir() {
             let index_html = file_path.join("index.html");
             if index_html.is_file() {
+                Logger::debug("[Response] Serving index.html from directory");
                 self.serve_file(root_dir, index_html);
             } else {
+                Logger::debug("[Response] Serving directory listing");
                 self.serve_directory(root_dir, file_path);
             }
         } else if file_path.is_file() {
+            Logger::debug("[Response] Serving file");
             self.serve_file(root_dir, file_path);
         } else {
+            Logger::warn(format!("[Response] Path not found: {}", file_path.display()).as_str());
             self.serve_error_response(HttpStatus::NotFound);
         }
 
@@ -68,6 +74,8 @@ impl Response {
     }
 
     fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
+        Logger::debug(format!("[Response] Attempting to serve file: {}", path.display()).as_str());
+
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 
         let root_dir = root_path.to_str().unwrap();
@@ -108,12 +116,14 @@ impl Response {
                 let is_readable = metadata.permissions().readonly();
 
                 if !is_readable {
+                    Logger::error(format!("[Response] File not readable: {}", path.display()).as_str());
                     self.serve_error_response(HttpStatus::InternalServerError);
                 }
 
                 self._size = file_size as usize;
 
                 if self._size > Response::MAX_SIZE_ALL_AT_ONCE {
+                    Logger::debug(format!("[Response] File size {} exceeds MAX_SIZE_ALL_AT_ONCE, will stream", self._size).as_str());
                     self._need_stream = true;
                 }
 
@@ -133,6 +143,8 @@ impl Response {
     }
 
     fn serve_directory(&mut self, root_path: &PathBuf, path: PathBuf) {
+        Logger::debug(format!("[Response] Serving directory listing for: {}", path.display()).as_str());
+        
         self._is_compiled = true;
 
         let mut listing_html = String::new();
@@ -156,6 +168,8 @@ impl Response {
         self._path = path.to_owned();
 
         let entries = Utils::walk_dir(&path);
+        Logger::debug(format!("[Response] Found {} entries in directory", entries.len()).as_str());
+
         let mut folders = Vec::new();
         let mut files = Vec::new();
 
@@ -278,17 +292,20 @@ impl Response {
     }
 
     pub fn stream(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
+        Logger::debug("[Response] Starting stream response");
+        
         self.headers.push(("Content-Length".to_string(), self._size.to_string()));
 
         if self._is_compiled {
             if self.body.len() == 0 {
-                Logger::error("Body is empty while expecting body to have compiled content");
+                Logger::error("[Response] Body is empty while expecting compiled content");
                 self.serve_error_response(HttpStatus::InternalServerError);
                 stream.write_all(self.to_bytes().as_slice())?;
                 stream.flush()?;
                 return Ok(());
             }
 
+            Logger::debug("[Response] Streaming compiled content");
             stream.write_all(self.to_bytes().as_slice())?;
             stream.flush()?;
             return Ok(());
@@ -319,7 +336,7 @@ impl Response {
         let _ : Result<(), Error>  = match self.stream_by_chunk(stream) {
             Ok(_) => Ok(()),
             Err(error) => {
-                Logger::error(format!("Error while streaming by chunk: {}", error).as_str());
+                Logger::error(format!("[Response] Error while streaming by chunk: {}", error).as_str());
                 self.serve_error_response(HttpStatus::InternalServerError);
                 stream.write_all(self.to_bytes().as_slice())?;
                 return Ok(());
@@ -354,6 +371,8 @@ impl Response {
 
         // check if range header is present
         if let Some(range) = self.request.headers.iter().find(|(k, _)| k == "Range").map(|(_, v)| v) {
+            Logger::debug(format!("[Response] Processing range request: {}", range).as_str());
+            
             // parse range header value and extract bytes start, end
             if !range.starts_with("bytes=") {
                 self.serve_error_response(HttpStatus::BadRequest);

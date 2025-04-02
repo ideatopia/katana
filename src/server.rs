@@ -29,10 +29,14 @@ impl Server {
     }
 
     pub fn serve(&self) {
+        Logger::debug(format!("[Server] Starting {} on {}", Self::version(), self.addr()).as_str());
         let listener = TcpListener::bind(self.addr().as_str()).unwrap();
+        Logger::debug("[Server] Server is ready to accept connections");
 
         for stream in listener.incoming() {
             if let Ok(stream) = stream {
+                Logger::debug(format!("[Server] New connection from {}", 
+                    stream.peer_addr().unwrap_or_else(|_| "[unknown]".parse().unwrap())).as_str());
                 // spawn a new thread for each connection
                 let config = self.config.clone();
                 let templates = self.templates.clone();
@@ -48,9 +52,11 @@ impl Server {
 
     pub fn handle_request(&self, mut stream: TcpStream) {
         if let Some(request) = Request::from_stream(&stream) {
+            Logger::debug(format!("[Server] Request received: {} {}", 
+                request.method.as_str(), request.path).as_str());
             self.handle_response(request, &mut stream);
         } else {
-            Logger::warn("Failed to read request.")
+            Logger::warn("[Server] Failed to read request");
         }
     }
 
@@ -62,13 +68,17 @@ impl Server {
 
             let result = response.stream(stream.deref_mut());
             match result {
-                Ok(_response) => { Self::log_response(&response) },
+                Ok(_response) => { 
+                    Logger::debug(format!("[Server] Response sent successfully: {}", 
+                        response.status_code.to_code()).as_str());
+                    Self::log_response(&response) 
+                },
                 Err(e) => {
-                    Logger::error(e.to_string().as_str())
+                    Logger::error(format!("[Server] Stream error: {}", e).as_str());
                 },
             }
         } else {
-            Logger::warn("Failed to send response.")
+            Logger::warn("[Server] Failed to create response");
         }
     }
 

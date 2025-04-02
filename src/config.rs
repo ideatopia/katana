@@ -1,4 +1,4 @@
-use crate::logger::Logger;
+use crate::logger::{Logger, LogLevel};
 use std::env::args;
 use std::path::PathBuf;
 
@@ -8,11 +8,13 @@ pub struct Config {
     pub port: u16,
     pub root_dir: PathBuf,
     pub worker: i32,
+    pub log_level: LogLevel,
 }
 
 impl Config {
     pub const MIN_WORKER: i32 = 1;
     pub const CHUNK_SIZE: usize = 8192;
+    pub const DEFAULT_LOG_LEVEL: LogLevel = LogLevel::INFO;
 
     pub fn load_args() -> Self {
         let env_args: Vec<String> = args().collect();
@@ -28,6 +30,7 @@ impl Config {
         let mut port = 8080;
         let mut root_dir = PathBuf::from("public");
         let mut worker = 4;
+        let mut log_level = Self::DEFAULT_LOG_LEVEL;
 
         let mut i = 1;
         while i < args.len() {
@@ -62,6 +65,16 @@ impl Config {
                         i += 1;
                     }
                 }
+                "--log-level" => {
+                    if i + 1 < args.len() {
+                        log_level = LogLevel::from_str(&args[i + 1].to_uppercase())
+                            .unwrap_or_else(|| {
+                                Logger::warn(format!("Invalid log level '{}', using default", args[i + 1]).as_str());
+                                Self::DEFAULT_LOG_LEVEL
+                            });
+                        i += 1;
+                    }
+                }
                 _ => {}
             }
             i += 1;
@@ -72,6 +85,7 @@ impl Config {
             port,
             root_dir,
             worker,
+            log_level,
         }
     }
 }
