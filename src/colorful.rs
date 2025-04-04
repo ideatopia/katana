@@ -23,9 +23,9 @@ pub enum Style {
 
 pub struct Colorful {
     text: String, // itself
-    style: Style,
-    foreground: Style,
-    background: Style,
+    style: Option<Style>,
+    foreground: Option<Style>,
+    background: Option<Style>,
 }
 
 impl Colorful {
