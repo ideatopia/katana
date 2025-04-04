@@ -26,8 +26,8 @@ pub enum Style {
 pub struct Colorful {
     text: String, // itself
     style: Option<Style>,
-    foreground: Option<Style>,
-    background: Option<Style>,
+    foreground: Option<Color>,
+    background: Option<Color>,
 }
 
 impl Colorful {
@@ -35,32 +35,35 @@ impl Colorful {
         //
     }
 
-    pub fn get_text() {
-        //
+    pub fn get_text(mut self) -> String {
+        self.text
     }
 
-    pub fn set_style() {
-        //
+    pub fn set_style(mut self, style: Style) -> Self {
+        self.style = Some(style);
+        self
     }
 
-    pub fn get_style() {
-        //
+    pub fn get_style(mut self) -> Some<Style> {
+        self.style
     }
 
-    pub fn get_foreground() {
-        //
+    pub fn get_foreground(mut self) -> Some<Color> {
+        self.foreground
     }
 
-    pub fn set_foreground() {
-        //
+    pub fn set_foreground(mut self, color: Color) -> Self {
+        self.foreground = Some(color);
+        self
     }
 
-    pub fn get_background() {
-        //
+    pub fn get_background(mut self) -> Some<Color> {
+        self.foreground.unwrap()
     }
 
-    pub fn set_background() {
-        //
+    pub fn set_background(mut self, color: Color) -> Self {
+        self.foreground = Some(color);
+        self
     }
 
     pub fn is_colors_supported() -> bool {
