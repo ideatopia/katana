@@ -34,8 +34,15 @@ pub struct Colorful {
 }
 
 impl Colorful {
-    pub fn new() {
-        //
+    // https://doc.rust-lang.org/rust-by-example/generics/bounds.html
+    // https://www.youtube.com/watch?v=t25vayJ8LVg
+    pub fn new(text: &str) -> Self {
+        Self {
+            text: text.to_string(),
+            style: None,
+            foreground: None,
+            background: None,
+        }
     }
 
     pub fn get_text(mut self) -> String {
