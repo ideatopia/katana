@@ -7,6 +7,8 @@
     https://jvns.ca/blog/2024/10/01/terminal-colours/
  */
 
+use std::env;
+
 pub enum Color {
     Black,
     White,
@@ -59,5 +61,33 @@ impl Colorful {
 
     pub fn set_background() {
         //
+    }
+
+    pub fn is_colors_supported() -> bool {
+        // explicitly disable colors
+        if env::var("NO_COLOR").is_ok() {
+            return false;
+        }
+
+        // only valid for unix shell
+        // https://www.baeldung.com/linux/terminal-colors#3-term-variable
+        if let Ok(term) = env::var("TERM") {
+            // checking with dumb may not be the proper way but keep it for now
+            // https://stackoverflow.com/questions/2465425/how-do-i-determine-if-a-terminal-is-color-capable
+            if term == "dumb" {
+                return false;
+            }
+        }
+
+        #[cfg(windows)] {
+            use std::io::IsTerminal;
+            use std::io::stdout;
+            // only if Windows supports ANSI
+            if !stdout().is_terminal() {
+                return false;
+            }
+        }
+
+        true
     }
 }
