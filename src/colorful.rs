@@ -9,7 +9,9 @@
 
 use std::env;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Color {
+    Default,
     Black,
     White,
     Red,
@@ -17,6 +19,7 @@ pub enum Color {
     Blue,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum Style {
     Default,
     Bold,
