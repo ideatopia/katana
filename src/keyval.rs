@@ -12,6 +12,10 @@ impl KeyVal {
         }
     }
 
+    pub fn map(&self) -> &HashMap<String, String> {
+        &self.map
+    }
+
     pub fn add(&mut self, key: String, value: String) -> Option<String> {
         self.map.insert(key, value)
     }
@@ -42,5 +46,13 @@ impl KeyVal {
 
     pub fn clear(&mut self) {
         self.map.clear();
+    }
+
+    pub fn iter(&self) -> std::collections::hash_map::Iter<String, String> {
+        self.map.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> std::collections::hash_map::IterMut<String, String> {
+        self.map.iter_mut()
     }
 }
