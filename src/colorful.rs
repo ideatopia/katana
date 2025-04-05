@@ -26,6 +26,41 @@ pub enum Style {
     Italic,
 }
 
+/// A struct that allows you to print styled and colored text in the terminal.
+/// This example demonstrates how you can use the `Colorful` struct for adding colors and styles.
+///
+/// # Examples
+///
+/// Basic usage of the `Colorful` struct for various text styles and colors.
+///
+/// ```rust
+/// use katana::colorful::{Color, Colorful, Style};
+///
+/// fn main() {
+///     let no_style = Colorful::new("no_style");
+///
+///     // default style (no style, no colors)
+///     println!("{}", no_style);
+///
+///     // red
+///     let red_text = Colorful::new("red_text")
+///         .set_foreground(Color::Red);
+///     println!("{}", red_text);
+///
+///     // blue on red
+///     let blue_on_red = Colorful::new("blue_on_red")
+///         .set_background(Color::Red)
+///         .set_foreground(Color::Blue);
+///     println!("{}", blue_on_red);
+///
+///     // green on black, bold
+///     let hacker_style = Colorful::new("hacker_style")
+///         .set_background(Color::Black)
+///         .set_foreground(Color::Green)
+///         .set_style(Style::Bold);
+///     println!("{}", hacker_style);
+/// }
+/// ```
 pub struct Colorful {
     text: String, // itself
     style: Option<Style>,
