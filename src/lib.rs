@@ -14,6 +14,7 @@ pub mod server;
 pub mod templates;
 pub mod utils;
 pub mod colorful;
+pub mod keyval;
 
 pub struct Katana {
     pub config: Config,

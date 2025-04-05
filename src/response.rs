@@ -10,6 +10,7 @@ use std::io::{Error, Read, Seek, SeekFrom, Write};
 use std::net::TcpStream;
 use std::path::PathBuf;
 use crate::logger::Logger;
+use crate::keyval::KeyVal;
 
 #[derive(Debug)]
 pub struct Response {
@@ -17,8 +18,8 @@ pub struct Response {
     pub templates: Templates,
     pub http_version: HttpVersion,
     pub status_code: HttpStatus,
-    pub headers: Vec<(String, String)>,
-    pub cookies: Vec<(String, String)>,
+    pub headers: KeyVal,
+    pub cookies: KeyVal,
     pub body: Vec<u8>,
     pub _size: usize,
     pub _path: PathBuf,
@@ -36,8 +37,8 @@ impl Response {
             templates,
             http_version: HttpVersion::Http11, // default to HTTP/1.1
             status_code: HttpStatus::Ok,       // default to 200 OK
-            headers: Vec::new(),
-            cookies: Vec::new(),
+            headers: KeyVal::new(),
+            cookies: KeyVal::new(),
             body: Vec::new(),
             _size: 0,
             _path: PathBuf::new(),
@@ -129,14 +130,14 @@ impl Response {
 
                 self.status_code = HttpStatus::Ok;
                 self.headers.clear();
-                self.headers.push((
+                self.headers.add(
                     "Content-Type".to_string(),
                     file_type.content_type.to_string(),
-                ));
-                self.headers.push((
+                );
+                self.headers.add(
                     "Content-Disposition".to_string(),
                     content_disposition.to_string(),
-                ));
+                );
             }
             Err(_) => self.serve_error_response(HttpStatus::NotFound),
         }
@@ -170,14 +171,14 @@ impl Response {
         let entries = Utils::walk_dir(&path);
         Logger::debug(format!("[Response] Found {} entries in directory", entries.len()).as_str());
 
-        let mut folders = Vec::new();
-        let mut files = Vec::new();
+        let mut folders = KeyVal::new();
+        let mut files = KeyVal::new();
 
         for (entry_type, entry_name, entry_path) in &entries {
             if entry_type == "directory" {
-                folders.push((entry_name, entry_path));
+                folders.add(entry_name.to_string(), entry_path.to_string());
             } else {
-                files.push((entry_name, entry_path));
+                files.add(entry_name.to_string(), entry_path.to_string());
             }
         }
 
@@ -189,7 +190,7 @@ impl Response {
             listing_html.push_str("<li><b>Empty Folder</b></li>");
         }
 
-        for (entry_name, entry_path) in folders {
+        for (entry_name, entry_path) in folders.iter() {
             let li_href = entry_path.strip_prefix(root_dir_normalized).unwrap();
             listing_html.push_str(&format!(
                 "<li><a href='{}'>{}</a></li>",
@@ -197,7 +198,7 @@ impl Response {
             ));
         }
 
-        for (entry_name, entry_path) in files {
+        for (entry_name, entry_path) in files.iter() {
             let li_href = entry_path.strip_prefix(root_dir_normalized).unwrap();
             listing_html.push_str(&format!(
                 "<li><a href='{}'>{}</a></li>",
@@ -215,8 +216,7 @@ impl Response {
             .into_bytes();
         self.status_code = HttpStatus::Ok;
         self.headers.clear();
-        self.headers
-            .push(("Content-Type".to_string(), "text/html".to_string()));
+        self.headers.add("Content-Type".to_string(), "text/html".to_string());
 
         self._size = self.body.len()
     }
@@ -236,8 +236,7 @@ impl Response {
             .render(TemplatesPage::ERROR, params)
             .into_bytes();
         self.headers.clear();
-        self.headers
-            .push(("Content-Type".to_string(), "text/html".to_string()));
+        self.headers.add("Content-Type".to_string(), "text/html".to_string());
 
         self._size = self.body.len()
     }
@@ -253,21 +252,14 @@ impl Response {
             self.status_code.to_message()
         ));
 
-        // format headers
-        let headers = self
-            .headers
-            .iter()
-            .map(|(k, v)| format!("{}: {}\r\n", k.trim(), v.trim()))
-            .collect::<String>();
-        result.push_str(&headers);
+        // Use iter() instead of map()
+        for (key, value) in self.headers.iter() {
+            result.push_str(&format!("{}: {}\r\n", key.trim(), value.trim()));
+        }
 
-        // format cookies
-        let cookies = self
-            .cookies
-            .iter()
-            .map(|(k, v)| format!("Set-Cookie: {}={}\r\n", k.trim(), v.trim()))
-            .collect::<String>();
-        result.push_str(&cookies);
+        for (key, value) in self.cookies.iter() {
+            result.push_str(&format!("Set-Cookie: {}={}\r\n", key.trim(), value.trim()));
+        }
 
         result
     }
@@ -294,7 +286,7 @@ impl Response {
     pub fn stream(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
         Logger::debug("[Response] Starting stream response");
         
-        self.headers.push(("Content-Length".to_string(), self._size.to_string()));
+        self.headers.add("Content-Length".to_string(), self._size.to_string());
 
         if self._is_compiled {
             if self.body.len() == 0 {
@@ -364,13 +356,13 @@ impl Response {
 
         Logger::debug(format!("[Response] Sending response in chunks with size: {}", self._size).as_str());
 
-        self.headers.push(("Content-Length".to_string(), self._size.to_string()));
+        self.headers.add("Content-Length".to_string(), self._size.to_string());
 
         // @see: https://datatracker.ietf.org/doc/html/rfc7233
-        self.headers.push(("Accept-Ranges".to_string(), "bytes".to_string()));
+        self.headers.add("Accept-Ranges".to_string(), "bytes".to_string());
 
         // check if range header is present
-        if let Some(range) = self.request.headers.iter().find(|(k, _)| k == "Range").map(|(_, v)| v) {
+        if let Some(range) = self.request.headers.iter().find(|(k, _)| k.to_lowercase() == "range".to_string()).map(|(_, v)| v) {
             Logger::debug(format!("[Response] Processing range request: {}", range).as_str());
             
             // parse range header value and extract bytes start, end
@@ -396,7 +388,7 @@ impl Response {
                 // return http 416 Range Not Satisfiable
                 // @see: https://http.dev/416
                 self.status_code = HttpStatus::RangeNotSatisfiable;
-                self.headers.push(("Content-Range".to_string(), format!("bytes */{}", self._size)));
+                self.headers.add("Content-Range".to_string(), format!("bytes */{}", self._size));
                 stream.write_all(self.http_description().as_bytes())?;
                 stream.write_all(b"\r\n")?;
                 stream.flush()?;
@@ -405,10 +397,10 @@ impl Response {
 
             // set status code for response to 206
             self.status_code = HttpStatus::PartialContent;
-            self.headers.push(("Content-Range".to_string(),
-                               format!("bytes {}-{}/{}", start, end, self._size)));
-            self.headers.push(("Content-Length".to_string(),
-                               (end - start + 1).to_string()));
+            self.headers.add("Content-Range".to_string(),
+                               format!("bytes {}-{}/{}", start, end, self._size));
+            self.headers.add("Content-Length".to_string(),
+                               (end - start + 1).to_string());
 
             stream.write_all(self.http_description().as_bytes())?;
             stream.write_all(b"\r\n")?;
