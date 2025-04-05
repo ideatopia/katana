@@ -241,9 +241,9 @@ pub trait Colored: fmt::Display {
     
     fn reset(&self) -> Colorful {
         self.colored()
-            .default()
-            .default_background()
-            .default_background()
+            .default() // default foreground
+            .default_background() // default background
+            .default_style() // default style
     }
 
     fn default(&self) -> Colorful { self.colored().foreground(Color::Default) }
