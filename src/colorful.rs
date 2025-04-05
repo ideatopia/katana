@@ -7,7 +7,7 @@
     https://jvns.ca/blog/2024/10/01/terminal-colours/
  */
 
-use std::env;
+use std::{env, fmt};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Color {
@@ -36,7 +36,7 @@ pub struct Colorful {
 impl Colorful {
     // https://doc.rust-lang.org/rust-by-example/generics/bounds.html
     // https://www.youtube.com/watch?v=t25vayJ8LVg
-    pub fn new(text: &str) -> Self {
+    pub fn new<T: fmt::Display>(text: T) -> Self {
         Self {
             text: text.to_string(),
             style: None,
@@ -127,5 +127,30 @@ impl Colorful {
         };
 
         format!("\x1b[{}m", code)
+    }
+}
+
+// More details on https://doc.rust-lang.org/rust-by-example/hello/print/print_display.html
+impl fmt::Display for Colorful {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if !Self::is_colors_supported() {
+            return write!(f, "{}", self.text);
+        }
+
+        let mut result = String::new();
+
+        if let Some(style) = self.style {
+            result.push_str(&Self::get_ansi_style(style));
+        }
+        if let Some(fg) = self.foreground {
+            result.push_str(&Self::get_ansi_color(fg, false));
+        }
+        if let Some(bg) = self.background {
+            result.push_str(&Self::get_ansi_color(bg, true));
+        }
+
+        result.push_str(&self.text);
+        result.push_str("\x1b[0m"); // reset styles & colors
+        write!(f, "{}", result)
     }
 }
