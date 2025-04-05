@@ -238,6 +238,13 @@ pub trait Colored: fmt::Display {
     fn background(&self, color: Color) -> Colorful {
         self.colored().background(color)
     }
+    
+    fn reset(&self) -> Colorful {
+        self.colored()
+            .default()
+            .default_background()
+            .default_background()
+    }
 
     fn default(&self) -> Colorful { self.colored().foreground(Color::Default) }
     fn black(&self) -> Colorful { self.colored().foreground(Color::Black) }
