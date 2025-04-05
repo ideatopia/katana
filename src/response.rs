@@ -122,7 +122,7 @@ impl Response {
                 // get file size without reading
                 let metadata = std::fs::metadata(&path).expect("Unable to read metadata"); // self.body.len().to_string()
                 let file_size = metadata.len();
-                let is_readable = metadata.permissions().readonly();
+                let is_readable = Utils::is_readable_from_metadata(metadata.clone());
 
                 if !is_readable {
                     Logger::error(format!("[Response] File not readable: {}", path.display()).as_str());
