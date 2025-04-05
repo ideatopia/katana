@@ -54,11 +54,11 @@ impl Colorful {
         self
     }
 
-    pub fn get_style(mut self) -> Some<Style> {
+    pub fn get_style(mut self) -> Option<Style> {
         self.style
     }
 
-    pub fn get_foreground(mut self) -> Some<Color> {
+    pub fn get_foreground(mut self) -> Option<Color> {
         self.foreground
     }
 
@@ -67,8 +67,8 @@ impl Colorful {
         self
     }
 
-    pub fn get_background(mut self) -> Some<Color> {
-        self.foreground.unwrap()
+    pub fn get_background(mut self) -> Option<Color> {
+        self.foreground
     }
 
     pub fn set_background(mut self, color: Color) -> Self {
