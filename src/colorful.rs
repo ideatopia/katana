@@ -103,4 +103,29 @@ impl Colorful {
 
         true
     }
+
+    pub fn get_ansi_color(color: Color, is_background: bool) -> String {
+        // @todo: add more color later
+        let base = if is_background { 40 } else { 30 };
+        let code = match color {
+            Color::Default => 0,
+            Color::Black => base,
+            Color::White => base + 7,
+            Color::Red => base + 1,
+            Color::Green => base + 2,
+            Color::Blue => base + 4,
+        };
+
+        format!("\x1b[{}m", code)
+    }
+
+    pub fn get_ansi_style(style: Style) -> String {
+        let code = match style {
+            Style::Default => 0,
+            Style::Bold => 1,
+            Style::Italic => 3,
+        };
+
+        format!("\x1b[{}m", code)
+    }
 }
