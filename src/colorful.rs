@@ -72,7 +72,7 @@ impl Colorful {
     }
 
     pub fn set_background(mut self, color: Color) -> Self {
-        self.foreground = Some(color);
+        self.background = Some(color);
         self
     }
 
