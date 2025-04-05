@@ -1,6 +1,7 @@
 use std::io::Write;
 use crate::config::Config;
 use crate::utils::Utils;
+use crate::colorful::{Colored};
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[allow(dead_code)]
@@ -96,9 +97,21 @@ impl Logger {
         let _ = writer.write_all(log_message.as_bytes());
     }
 
+    fn colorful_log_level(level: LogLevel) -> String {
+        let colored = match level {
+            LogLevel::DEBUG => level.as_str().cyan().dim(),
+            LogLevel::INFO => level.as_str().green(),
+            LogLevel::WARN => level.as_str().yellow().bold(),
+            LogLevel::ERROR => level.as_str().red().bold(),
+        };
+
+        colored.to_string()
+    }
+
     fn build_log_message(level: LogLevel, message: &str) -> String {
         let at = Utils::log_datetime();
-        let level_str = level.as_str();
+        let level_binding = Self::colorful_log_level(level);
+        let level_str = level_binding.as_str();
         let log_message = format!("[{}] [{}] {}", at, level_str, message);
         log_message
     }
