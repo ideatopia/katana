@@ -13,6 +13,7 @@ pub mod response;
 pub mod server;
 pub mod templates;
 pub mod utils;
+pub mod colorful;
 
 pub struct Katana {
     pub config: Config,
