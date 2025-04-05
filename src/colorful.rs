@@ -44,20 +44,20 @@ pub enum Style {
 ///
 ///     // red
 ///     let red_text = Colorful::new("red_text")
-///         .set_foreground(Color::Red);
+///         .foreground(Color::Red);
 ///     println!("{}", red_text);
 ///
 ///     // blue on red
 ///     let blue_on_red = Colorful::new("blue_on_red")
-///         .set_background(Color::Red)
-///         .set_foreground(Color::Blue);
+///         .background(Color::Red)
+///         .foreground(Color::Blue);
 ///     println!("{}", blue_on_red);
 ///
 ///     // green on black, bold
 ///     let hacker_style = Colorful::new("hacker_style")
-///         .set_background(Color::Black)
-///         .set_foreground(Color::Green)
-///         .set_style(Style::Bold);
+///         .background(Color::Black)
+///         .foreground(Color::Green)
+///         .style(Style::Bold);
 ///     println!("{}", hacker_style);
 /// }
 /// ```
@@ -80,33 +80,17 @@ impl Colorful {
         }
     }
 
-    pub fn get_text(mut self) -> String {
-        self.text
-    }
-
-    pub fn set_style(mut self, style: Style) -> Self {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = Some(style);
         self
     }
-
-    pub fn get_style(mut self) -> Option<Style> {
-        self.style
-    }
-
-    pub fn get_foreground(mut self) -> Option<Color> {
-        self.foreground
-    }
-
-    pub fn set_foreground(mut self, color: Color) -> Self {
+    
+    pub fn foreground(mut self, color: Color) -> Self {
         self.foreground = Some(color);
         self
     }
 
-    pub fn get_background(mut self) -> Option<Color> {
-        self.foreground
-    }
-
-    pub fn set_background(mut self, color: Color) -> Self {
+    pub fn background(mut self, color: Color) -> Self {
         self.background = Some(color);
         self
     }
