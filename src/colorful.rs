@@ -173,3 +173,25 @@ impl fmt::Display for Colorful {
         write!(f, "{}", result)
     }
 }
+
+// Trait to add color methods to any type that implements Display
+pub trait Colored: fmt::Display {
+    fn colored(&self) -> Colorful {
+        Colorful::new(self)
+    }
+
+    fn style(&self, style: Style) -> Colorful {
+        self.colored().style(style)
+    }
+
+    fn foreground(&self, color: Color) -> Colorful {
+        self.colored().foreground(color)
+    }
+
+    fn background(&self, color: Color) -> Colorful {
+        self.colored().background(color)
+    }
+}
+
+// Implement Colored for all types that implement Display
+impl<T: fmt::Display> Colored for T {}
