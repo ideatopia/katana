@@ -1,5 +1,5 @@
 use std::env;
-use std::fs::{self, ReadDir};
+use std::fs::{self, Metadata, ReadDir};
 use std::path::{Component, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -215,5 +215,26 @@ impl Utils {
         );
 
         datetime
+    }
+
+    pub fn is_readable(path: PathBuf) -> bool {
+        let metadata = fs::metadata(path).expect("Unable to read metadata");
+        Self::is_readable_from_metadata(metadata)
+    }
+
+    pub fn is_readable_from_metadata(metadata: Metadata) -> bool {
+        #[cfg(unix)]
+        let is_readable = {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = metadata.permissions().mode();
+            (mode & 0o444) != 0 // check if file has read permission
+        };
+
+        #[cfg(windows)]
+        let is_readable = {
+            !metadata.permissions().readonly() // on Windows, check if file is not readonly
+        };
+
+        is_readable
     }
 }
