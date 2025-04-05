@@ -13,17 +13,33 @@ use std::{env, fmt};
 pub enum Color {
     Default,
     Black,
-    White,
     Red,
     Green,
+    Yellow,
     Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum Style {
     Default,
     Bold,
+    Dim,
     Italic,
+    Underline,
+    Blink,
+    Reverse,
+    Hidden,
 }
 
 /// A struct that allows you to print styled and colored text in the terminal.
@@ -129,10 +145,21 @@ impl Colorful {
         let code = match color {
             Color::Default => 0,
             Color::Black => base,
-            Color::White => base + 7,
             Color::Red => base + 1,
             Color::Green => base + 2,
+            Color::Yellow => base + 3,
             Color::Blue => base + 4,
+            Color::Magenta => base + 5,
+            Color::Cyan => base + 6,
+            Color::White => base + 7,
+            Color::BrightBlack => base + 60,
+            Color::BrightRed => base + 61,
+            Color::BrightGreen => base + 62,
+            Color::BrightYellow => base + 63,
+            Color::BrightBlue => base + 64,
+            Color::BrightMagenta => base + 65,
+            Color::BrightCyan => base + 66,
+            Color::BrightWhite => base + 67,
         };
 
         format!("\x1b[{}m", code)
@@ -142,7 +169,12 @@ impl Colorful {
         let code = match style {
             Style::Default => 0,
             Style::Bold => 1,
+            Style::Dim => 2,
             Style::Italic => 3,
+            Style::Underline => 4,
+            Style::Blink => 5,
+            Style::Reverse => 7,
+            Style::Hidden => 8,
         };
 
         format!("\x1b[{}m", code)
@@ -207,20 +239,50 @@ pub trait Colored: fmt::Display {
         self.colored().background(color)
     }
 
+    fn default(&self) -> Colorful { self.colored().foreground(Color::Default) }
     fn black(&self) -> Colorful { self.colored().foreground(Color::Black) }
     fn red(&self) -> Colorful { self.colored().foreground(Color::Red) }
     fn green(&self) -> Colorful { self.colored().foreground(Color::Green) }
+    fn yellow(&self) -> Colorful { self.colored().foreground(Color::Yellow) }
     fn blue(&self) -> Colorful { self.colored().foreground(Color::Blue) }
+    fn magenta(&self) -> Colorful { self.colored().foreground(Color::Magenta) }
+    fn cyan(&self) -> Colorful { self.colored().foreground(Color::Cyan) }
     fn white(&self) -> Colorful { self.colored().foreground(Color::White) }
+    fn bright_black(&self) -> Colorful { self.colored().foreground(Color::BrightBlack) }
+    fn bright_red(&self) -> Colorful { self.colored().foreground(Color::BrightRed) }
+    fn bright_green(&self) -> Colorful { self.colored().foreground(Color::BrightGreen) }
+    fn bright_yellow(&self) -> Colorful { self.colored().foreground(Color::BrightYellow) }
+    fn bright_blue(&self) -> Colorful { self.colored().foreground(Color::BrightBlue) }
+    fn bright_magenta(&self) -> Colorful { self.colored().foreground(Color::BrightMagenta) }
+    fn bright_cyan(&self) -> Colorful { self.colored().foreground(Color::BrightCyan) }
+    fn bright_white(&self) -> Colorful { self.colored().foreground(Color::BrightWhite) }
 
+    fn default_background(&self) -> Colorful { self.colored().background(Color::Default) }
     fn black_background(&self) -> Colorful { self.colored().background(Color::Black) }
     fn red_background(&self) -> Colorful { self.colored().background(Color::Red) }
     fn green_background(&self) -> Colorful { self.colored().background(Color::Green) }
+    fn yellow_background(&self) -> Colorful { self.colored().background(Color::Yellow) }
     fn blue_background(&self) -> Colorful { self.colored().background(Color::Blue) }
+    fn magenta_background(&self) -> Colorful { self.colored().background(Color::Magenta) }
+    fn cyan_background(&self) -> Colorful { self.colored().background(Color::Cyan) }
     fn white_background(&self) -> Colorful { self.colored().background(Color::White) }
+    fn bright_black_background(&self) -> Colorful { self.colored().background(Color::BrightBlack) }
+    fn bright_red_background(&self) -> Colorful { self.colored().background(Color::BrightRed) }
+    fn bright_green_background(&self) -> Colorful { self.colored().background(Color::BrightGreen) }
+    fn bright_yellow_background(&self) -> Colorful { self.colored().background(Color::BrightYellow) }
+    fn bright_blue_background(&self) -> Colorful { self.colored().background(Color::BrightBlue) }
+    fn bright_magenta_background(&self) -> Colorful { self.colored().background(Color::BrightMagenta) }
+    fn bright_cyan_background(&self) -> Colorful { self.colored().background(Color::BrightCyan) }
+    fn bright_white_background(&self) -> Colorful { self.colored().background(Color::BrightWhite) }
 
+    fn default_style(&self) -> Colorful { self.colored().style(Style::Default) }
     fn bold(&self) -> Colorful { self.colored().style(Style::Bold) }
+    fn dim(&self) -> Colorful { self.colored().style(Style::Dim) }
     fn italic(&self) -> Colorful { self.colored().style(Style::Italic) }
+    fn underline(&self) -> Colorful { self.colored().style(Style::Underline) }
+    fn blink(&self) -> Colorful { self.colored().style(Style::Blink) }
+    fn reverse(&self) -> Colorful { self.colored().style(Style::Reverse) }
+    fn hidden(&self) -> Colorful { self.colored().style(Style::Hidden) }
 }
 
 // Implement Colored for all types that implement Display
