@@ -75,6 +75,14 @@ impl Response {
     }
 
     fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
+        // normalize path separator based on system type
+        #[cfg(target_os = "windows")]
+            let path = path.to_str().unwrap().replace('/', "\\");
+        #[cfg(not(target_os = "windows"))]
+            let path = path.to_str().unwrap().replace('\\', "/");
+
+        let path = PathBuf::from(path);
+
         Logger::debug(format!("[Response] Attempting to serve file: {}", path.display()).as_str());
 
         let name = path.file_name().unwrap().to_string_lossy().to_string();
