@@ -174,7 +174,22 @@ impl fmt::Display for Colorful {
     }
 }
 
-// Trait to add color methods to any type that implements Display
+/// A trait to add colored output capabilities to any type that implements Display.
+///
+/// # Examples
+///
+///  ```rust
+/// use katana::colorful::Colored;
+///
+/// fn main() {
+///     println!(
+///         "{}{}{}.",
+///         "Katana Colorful".black().white_background(),
+///         ": ".blue().red_background(),
+///         "the Hacker Way".green().black_background().bold(),
+///     );
+/// }
+///  ```
 pub trait Colored: fmt::Display {
     fn colored(&self) -> Colorful {
         Colorful::new(self)
@@ -191,6 +206,21 @@ pub trait Colored: fmt::Display {
     fn background(&self, color: Color) -> Colorful {
         self.colored().background(color)
     }
+
+    fn black(&self) -> Colorful { self.colored().foreground(Color::Black) }
+    fn red(&self) -> Colorful { self.colored().foreground(Color::Red) }
+    fn green(&self) -> Colorful { self.colored().foreground(Color::Green) }
+    fn blue(&self) -> Colorful { self.colored().foreground(Color::Blue) }
+    fn white(&self) -> Colorful { self.colored().foreground(Color::White) }
+
+    fn black_background(&self) -> Colorful { self.colored().background(Color::Black) }
+    fn red_background(&self) -> Colorful { self.colored().background(Color::Red) }
+    fn green_background(&self) -> Colorful { self.colored().background(Color::Green) }
+    fn blue_background(&self) -> Colorful { self.colored().background(Color::Blue) }
+    fn white_background(&self) -> Colorful { self.colored().background(Color::White) }
+
+    fn bold(&self) -> Colorful { self.colored().style(Style::Bold) }
+    fn italic(&self) -> Colorful { self.colored().style(Style::Italic) }
 }
 
 // Implement Colored for all types that implement Display
