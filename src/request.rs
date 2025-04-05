@@ -3,6 +3,7 @@ use crate::logger::Logger;
 use crate::server::Server;
 use std::io::{BufRead, BufReader, Read};
 use std::net::TcpStream;
+use crate::keyval::KeyVal;
 
 #[derive(Debug, Clone)]
 pub struct Request {
@@ -10,9 +11,9 @@ pub struct Request {
     pub domain: String,
     pub path: String,
     pub method: HttpMethod,
-    pub queries: Vec<(String, String)>,
-    pub headers: Vec<(String, String)>,
-    pub cookies: Vec<(String, String)>,
+    pub queries: KeyVal,
+    pub headers: KeyVal,
+    pub cookies: KeyVal,
     pub body: String,
 }
 
@@ -46,19 +47,19 @@ impl Request {
             method.as_str(), path, version.as_str()).as_str());
 
         let mut domain = String::new();
-        let mut queries = Vec::new();
-        let mut headers = Vec::new();
-        let mut cookies = Vec::new();
-        let mut body = String::new(); // you the correct type
+        let mut queries = KeyVal::new();
+        let mut headers = KeyVal::new();
+        let mut cookies = KeyVal::new();
+        let mut body = String::new();
 
-        // extract queries from the path (if any)
+        // Modify query parsing
         if let Some((path_part, query_part)) = path.clone().split_once('?') {
             path = path_part.to_string();
-            queries = query_part
-                .split('&')
-                .filter_map(|pair| pair.split_once('='))
-                .map(|(k, v)| (k.to_string(), v.to_string()))
-                .collect();
+            for pair in query_part.split('&') {
+                if let Some((k, v)) = pair.split_once('=') {
+                    queries.add(k.to_string(), v.to_string());
+                }
+            }
             Logger::debug(format!("[Request] Parsed {} query parameters", queries.len()).as_str());
         }
 
@@ -80,17 +81,18 @@ impl Request {
                 let key = key.to_string();
                 let value = value.to_string();
                 Logger::debug(format!("[Request] Header: {} = {}", key, value).as_str());
-                headers.push((key.clone(), value.clone()));
+                headers.add(key.clone(), value.clone());
 
                 if key.to_lowercase() == "host" {
                     domain = value;
                     Logger::debug(format!("[Request] Host domain: {}", domain).as_str());
                 } else if key.to_lowercase() == "cookie" {
-                    cookies = value
-                        .split("; ")
-                        .filter_map(|cookie| cookie.split_once('='))
-                        .map(|(k, v)| (k.to_string(), v.to_string()))
-                        .collect();
+                    cookies = KeyVal::new();
+                    for cookie in value.split("; ") {
+                        if let Some((k, v)) = cookie.split_once('=') {
+                            cookies.add(k.to_string(), v.to_string());
+                        }
+                    }
                     Logger::debug(format!("[Request] Parsed {} cookies", cookies.len()).as_str());
                 }
             }
@@ -191,8 +193,8 @@ impl Request {
             result.push_str(&format!("{}?{}\r\n", self.path, query_string));
         }
 
-        // add headers (each header should be "Key: Value")
-        for (key, value) in &self.headers {
+        // Use iter() instead of map()
+        for (key, value) in self.headers.iter() {
             result.push_str(&format!("{}: {}\r\n", key.trim(), value.trim()));
         }
 

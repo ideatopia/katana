@@ -95,10 +95,7 @@ impl Server {
     }
 
     pub fn server_transformation(&self, response: &mut Response) {
-        // add to headers server name
-        response
-            .headers
-            .push(("Server".to_string(), Self::version()));
+        response.headers.add("Server".to_string(), Self::version());
     }
 
     pub fn method_handle(&self, response: &mut Response) {
@@ -115,23 +112,21 @@ impl Server {
             // do not return body
             response.body = Vec::new();
 
-            // headers
-            response
-                .headers
-                .push(("Date".to_string(), Utils::datetime_rfc_1123().to_string()));
-            response.headers.push((
+            response.headers.add("Date".to_string(), Utils::datetime_rfc_1123().to_string());
+            response.headers.add(
                 "Allow".to_string(),
                 HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
-            ));
+            );
             // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            response
-                .headers
-                .push(("Access-Control-Allow-Origin".to_string(), "*".to_string()));
-            response.headers.push((
+            response.headers.add("Access-Control-Allow-Origin".to_string(), "*".to_string());
+            response.headers.add(
                 "Access-Control-Allow-Methods".to_string(),
                 HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
-            ));
-            // response.headers.push(("Access-Control-Allow-Headers".to_string(), "content-type, accept".to_string()));
+            );
+            // response.headers.add(
+            //     "Access-Control-Allow-Headers".to_string(), 
+            //     "content-type, accept".to_string()
+            // );
         }
 
         if response.request.method == HttpMethod::TRACE {
@@ -148,7 +143,7 @@ impl Server {
             // correct type
             response
                 .headers
-                .push(("Content-Type".to_string(), "message/http".to_string()));
+                .add("Content-Type".to_string(), "message/http".to_string());
 
             // new body
             let body = format!("\r\n{}", response.request.http_description());
@@ -156,7 +151,7 @@ impl Server {
             // new body length
             response
                 .headers
-                .push(("Content-Length".to_string(), body.len().to_string()));
+                .add("Content-Length".to_string(), body.len().to_string());
 
             // set new body
             response.body = body.into_bytes();
@@ -167,10 +162,10 @@ impl Server {
             response.body = Vec::new();
             // headers
             response.headers.clear();
-            response.headers.push((
+            response.headers.add(
                 "Allow".to_string(),
                 HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
-            ));
+            );
             // status
             response.status_code = HttpStatus::MethodNotAllowed;
         }
