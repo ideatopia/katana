@@ -1,9 +1,9 @@
 use crate::http::{HttpMethod, HttpVersion};
+use crate::keyval::KeyVal;
 use crate::logger::Logger;
 use crate::server::Server;
 use std::io::{BufRead, BufReader, Read};
 use std::net::TcpStream;
-use crate::keyval::KeyVal;
 
 #[derive(Debug, Clone)]
 pub struct Request {
@@ -29,12 +29,14 @@ impl Request {
             return None;
         }
         let request_line = request_line.trim_end();
-        
+
         Logger::debug(format!("[Request] Request line: {}", request_line).as_str());
 
         let parts: Vec<&str> = request_line.split_whitespace().collect();
         if parts.len() < 3 {
-            Logger::warn(format!("[Request] Invalid request line format: {}", request_line).as_str());
+            Logger::warn(
+                format!("[Request] Invalid request line format: {}", request_line).as_str(),
+            );
             return None;
         }
 
@@ -42,9 +44,16 @@ impl Request {
         let raw_path = parts[1];
         let mut path = Self::decode_url(raw_path);
         let version = HttpVersion::from_str(&parts[2].replace("HTTP/", "")).unwrap();
-        
-        Logger::debug(format!("[Request] Method: {}, Path: {}, Version: {}", 
-            method.as_str(), path, version.as_str()).as_str());
+
+        Logger::debug(
+            format!(
+                "[Request] Method: {}, Path: {}, Version: {}",
+                method.as_str(),
+                path,
+                version.as_str()
+            )
+            .as_str(),
+        );
 
         let mut domain = String::new();
         let mut queries = KeyVal::new();
@@ -105,7 +114,9 @@ impl Request {
                 .find(|(key, _)| key.to_lowercase() == "content-length")
             {
                 if let Ok(content_length) = cl_value.trim().parse::<usize>() {
-                    Logger::debug(format!("[Request] Reading body with length: {}", content_length).as_str());
+                    Logger::debug(
+                        format!("[Request] Reading body with length: {}", content_length).as_str(),
+                    );
                     let mut buf = vec![0; content_length];
                     if let Err(e) = reader.read_exact(&mut buf) {
                         Logger::warn(&format!("[Request] Error reading body: {}", e));
@@ -116,11 +127,14 @@ impl Request {
                 }
             }
         } else {
-            Logger::warn(format!(
-                "[Request] Method '{}' on '{}' is disabled",
-                method.as_str(),
-                path.as_str()
-            ).as_str());
+            Logger::warn(
+                format!(
+                    "[Request] Method '{}' on '{}' is disabled",
+                    method.as_str(),
+                    path.as_str()
+                )
+                .as_str(),
+            );
         }
 
         Logger::debug("[Request] Request parsing completed successfully");

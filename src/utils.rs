@@ -89,7 +89,18 @@ impl Utils {
 
             // Days in each month (adjust for leap year)
             let month_days = [
-                31, if is_leap_year(year) { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+                31,
+                if is_leap_year(year) { 29 } else { 28 },
+                31,
+                30,
+                31,
+                30,
+                31,
+                31,
+                30,
+                31,
+                30,
+                31,
             ];
 
             let mut month = 0;
@@ -143,7 +154,18 @@ impl Utils {
 
             // Days in each month (adjust for leap year)
             let month_days = [
-                31, if is_leap_year(year) { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+                31,
+                if is_leap_year(year) { 29 } else { 28 },
+                31,
+                30,
+                31,
+                30,
+                31,
+                31,
+                30,
+                31,
+                30,
+                31,
             ];
             let month_names = [
                 "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -163,7 +185,7 @@ impl Utils {
 
             if m <= 2 {
                 m += 12; // Jan, Feb become 13, 14
-                y -= 1;  // Adjust year
+                y -= 1; // Adjust year
             }
 
             let k: i32 = y % 100;
