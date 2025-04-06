@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom, Write};
 use std::net::TcpStream;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct Response {
@@ -49,14 +49,14 @@ impl Response {
         Some(response)
     }
 
-    pub fn serve(&mut self, root_dir: &PathBuf) -> &mut Response {
+    pub fn serve(&mut self, root_dir: &Path) -> &mut Response {
         Logger::debug(
             format!("[Response] Serving request for path: {}", self.request.path).as_str(),
         );
 
         let file_path = root_dir.join(&self.request.path[1..]);
 
-        self._path = file_path.clone();
+        file_path.clone_into(&mut self._path);
 
         if file_path.is_dir() {
             let index_html = file_path.join("index.html");
@@ -79,7 +79,7 @@ impl Response {
         self
     }
 
-    fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
+    fn serve_file(&mut self, root_path: &Path, path: PathBuf) {
         let display_path = Utils::path_prettifier(path.clone());
         Logger::debug(format!("[Response] Attempting to serve file: {}", display_path).as_str());
 
@@ -105,7 +105,7 @@ impl Response {
             return;
         }
 
-        self._path = path.to_owned();
+        path.clone_into(&mut self._path);
 
         match File::open(&path) {
             Ok(_file) => {
@@ -157,7 +157,7 @@ impl Response {
         }
     }
 
-    fn serve_directory(&mut self, root_path: &PathBuf, path: PathBuf) {
+    fn serve_directory(&mut self, root_path: &Path, path: PathBuf) {
         Logger::debug(
             format!(
                 "[Response] Serving directory listing for: {}",
@@ -186,7 +186,7 @@ impl Response {
             return;
         }
 
-        self._path = path.to_owned();
+        self._path.clone_from(&path);
 
         let entries = Utils::walk_dir(&path);
         Logger::debug(format!("[Response] Found {} entries in directory", entries.len()).as_str());
@@ -312,7 +312,7 @@ impl Response {
             .add("Content-Length".to_string(), self.size.to_string());
 
         if self._is_compiled {
-            if self.body.len() == 0 {
+            if self.body.is_empty() {
                 Logger::error("[Response] Body is empty while expecting compiled content");
                 self.serve_error_response(HttpStatus::InternalServerError);
                 stream.write_all(self.to_bytes().as_slice())?;
@@ -403,7 +403,7 @@ impl Response {
             .request
             .headers
             .iter()
-            .find(|(k, _)| k.to_lowercase() == "range".to_string())
+            .find(|(k, _)| k.to_lowercase() == *"range")
             .map(|(_, v)| v)
         {
             Logger::debug(format!("[Response] Processing range request: {}", range).as_str());

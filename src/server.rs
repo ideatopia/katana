@@ -33,27 +33,25 @@ impl Server {
         let listener = TcpListener::bind(self.addr().as_str()).unwrap();
         Logger::debug("[Server] Server is ready to accept connections");
 
-        for stream in listener.incoming() {
-            if let Ok(stream) = stream {
-                Logger::debug(
-                    format!(
-                        "[Server] New connection from {}",
-                        stream
-                            .peer_addr()
-                            .unwrap_or_else(|_| "[unknown]".parse().unwrap())
-                    )
-                    .as_str(),
-                );
-                // spawn a new thread for each connection
-                let config = self.config.clone();
-                let templates = self.templates.clone();
+        for stream in listener.incoming().flatten() {
+            Logger::debug(
+                format!(
+                    "[Server] New connection from {}",
+                    stream
+                        .peer_addr()
+                        .unwrap_or_else(|_| "[unknown]".parse().unwrap())
+                )
+                .as_str(),
+            );
+            // spawn a new thread for each connection
+            let config = self.config.clone();
+            let templates = self.templates.clone();
 
-                thread::spawn(move || {
-                    // create a new server instance for the thread with the necessary data
-                    let server = Server::new(config, templates);
-                    server.handle_request(stream);
-                });
-            }
+            thread::spawn(move || {
+                // create a new server instance for the thread with the necessary data
+                let server = Server::new(config, templates);
+                server.handle_request(stream);
+            });
         }
     }
 

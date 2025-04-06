@@ -49,7 +49,7 @@ impl Config {
                 }
                 "--host" => {
                     if i + 1 < args.len() {
-                        host = args[i + 1].clone();
+                        host.clone_from(&args[i + 1]);
                         i += 1;
                     }
                 }

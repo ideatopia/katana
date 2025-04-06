@@ -6,13 +6,13 @@ mod tests {
     use std::path::PathBuf;
 
     fn get_host() -> String {
-        let host = if cfg!(target_family = "windows") {
+        
+
+        if cfg!(target_family = "windows") {
             "127.0.0.1".to_string()
         } else {
             "0.0.0.0".to_string()
-        };
-
-        host
+        }
     }
 
     /// Test case for when no arguments are passed.

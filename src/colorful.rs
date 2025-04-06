@@ -52,7 +52,7 @@ pub enum Style {
 /// ```rust
 /// use katana::colorful::{Color, Colorful, Style};
 ///
-/// fn main() {
+/// fn demo() {
 ///     let no_style = Colorful::new("no_style");
 ///
 ///     // default style (no style, no colors)
