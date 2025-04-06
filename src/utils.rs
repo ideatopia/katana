@@ -259,4 +259,15 @@ impl Utils {
 
         is_readable
     }
+
+    pub fn path_prettifier(path: PathBuf) -> String {
+        // use correct path separator based on system type for display purpose
+        #[cfg(target_os = "windows")]
+            let prettified = path.to_str().unwrap().replace('/', "\\");
+
+        #[cfg(not(target_os = "windows"))]
+            let prettified = path.to_str().unwrap().replace('\\', "/");
+
+        prettified
+    }
 }
