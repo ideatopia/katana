@@ -80,9 +80,8 @@ impl Response {
     }
 
     fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
-        let path = PathBuf::from(path);
-
-        Logger::debug(format!("[Response] Attempting to serve file: {}", path.display()).as_str());
+        let display_path = Utils::path_prettifier(path.clone());
+        Logger::debug(format!("[Response] Attempting to serve file: {}", display_path).as_str());
 
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 
