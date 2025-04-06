@@ -205,7 +205,7 @@ impl Server {
             "\"{}\" {} {}",
             status_line,
             response.status_code.to_code(),
-            response._size,
+            response.size,
         );
         Logger::info(log_message);
     }

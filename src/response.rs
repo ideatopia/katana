@@ -21,10 +21,10 @@ pub struct Response {
     pub headers: KeyVal,
     pub cookies: KeyVal,
     pub body: Vec<u8>,
-    pub _size: usize,
+    pub size: usize,
     pub _path: PathBuf,
-    pub _need_stream: bool,
-    pub _is_compiled: bool,
+    _need_stream: bool,
+    _is_compiled: bool,
 }
 
 impl Response {
@@ -40,7 +40,7 @@ impl Response {
             headers: KeyVal::new(),
             cookies: KeyVal::new(),
             body: Vec::new(),
-            _size: 0,
+            size: 0,
             _path: PathBuf::new(),
             _need_stream: false,
             _is_compiled: false,
@@ -130,13 +130,13 @@ impl Response {
                     self.serve_error_response(HttpStatus::InternalServerError);
                 }
 
-                self._size = file_size as usize;
+                self.size = file_size as usize;
 
-                if self._size > Response::MAX_SIZE_ALL_AT_ONCE {
+                if self.size > Response::MAX_SIZE_ALL_AT_ONCE {
                     Logger::debug(
                         format!(
                             "[Response] File size {} exceeds MAX_SIZE_ALL_AT_ONCE, will stream",
-                            self._size
+                            self.size
                         )
                         .as_str(),
                     );
@@ -240,7 +240,7 @@ impl Response {
         self.headers
             .add("Content-Type".to_string(), "text/html".to_string());
 
-        self._size = self.body.len()
+        self.size = self.body.len()
     }
 
     fn serve_error_response(&mut self, status: HttpStatus) {
@@ -261,7 +261,7 @@ impl Response {
         self.headers
             .add("Content-Type".to_string(), "text/html".to_string());
 
-        self._size = self.body.len()
+        self.size = self.body.len()
     }
 
     pub fn http_description(&self) -> String {
@@ -310,7 +310,7 @@ impl Response {
         Logger::debug("[Response] Starting stream response");
 
         self.headers
-            .add("Content-Length".to_string(), self._size.to_string());
+            .add("Content-Length".to_string(), self.size.to_string());
 
         if self._is_compiled {
             if self.body.len() == 0 {
@@ -343,7 +343,7 @@ impl Response {
             };
 
             // read into a buffer
-            let mut buffer = vec![0; self._size];
+            let mut buffer = vec![0; self.size];
             file.read_exact(&mut buffer)?;
             self.body = buffer;
 
@@ -387,13 +387,13 @@ impl Response {
         Logger::debug(
             format!(
                 "[Response] Sending response in chunks with size: {}",
-                self._size
+                self.size
             )
             .as_str(),
         );
 
         self.headers
-            .add("Content-Length".to_string(), self._size.to_string());
+            .add("Content-Length".to_string(), self.size.to_string());
 
         // @see: https://datatracker.ietf.org/doc/html/rfc7233
         self.headers
@@ -426,15 +426,15 @@ impl Response {
             }
 
             let start = range_values[0].parse::<usize>().unwrap_or(0);
-            let end = range_values[1].parse::<usize>().unwrap_or(self._size - 1);
+            let end = range_values[1].parse::<usize>().unwrap_or(self.size - 1);
 
-            if start >= self._size || end >= self._size || start > end {
+            if start >= self.size || end >= self.size || start > end {
                 // return http 416 Range Not Satisfiable
                 // @see: https://http.dev/416
                 self.status_code = HttpStatus::RangeNotSatisfiable;
                 self.headers.add(
                     "Content-Range".to_string(),
-                    format!("bytes */{}", self._size),
+                    format!("bytes */{}", self.size),
                 );
                 stream.write_all(self.http_description().as_bytes())?;
                 stream.write_all(b"\r\n")?;
@@ -446,7 +446,7 @@ impl Response {
             self.status_code = HttpStatus::PartialContent;
             self.headers.add(
                 "Content-Range".to_string(),
-                format!("bytes {}-{}/{}", start, end, self._size),
+                format!("bytes {}-{}/{}", start, end, self.size),
             );
             self.headers
                 .add("Content-Length".to_string(), (end - start + 1).to_string());
