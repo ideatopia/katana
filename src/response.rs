@@ -56,6 +56,8 @@ impl Response {
 
         let file_path = root_dir.join(&self.request.path[1..]);
 
+        self._path = file_path.clone();
+
         if file_path.is_dir() {
             let index_html = file_path.join("index.html");
             if index_html.is_file() {
@@ -69,7 +71,8 @@ impl Response {
             Logger::debug("[Response] Serving file");
             self.serve_file(root_dir, file_path);
         } else {
-            Logger::warn(format!("[Response] Path not found: {}", file_path.display()).as_str());
+            let display_path = Utils::path_prettifier(file_path.clone());
+            Logger::warn(format!("[Response] Path not found: {}", display_path).as_str());
             self.serve_error_response(HttpStatus::NotFound);
         }
 
@@ -77,12 +80,6 @@ impl Response {
     }
 
     fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
-        // normalize path separator based on system type
-        #[cfg(target_os = "windows")]
-        let path = path.to_str().unwrap().replace('/', "\\");
-        #[cfg(not(target_os = "windows"))]
-        let path = path.to_str().unwrap().replace('\\', "/");
-
         let path = PathBuf::from(path);
 
         Logger::debug(format!("[Response] Attempting to serve file: {}", path.display()).as_str());
@@ -334,8 +331,9 @@ impl Response {
             let mut file = match File::open(&self._path) {
                 Ok(file) => file,
                 Err(_) => {
+                    let display_path = Utils::path_prettifier(self._path.clone());
                     Logger::error(
-                        format!("Failed to open file: {}", self._path.display()).as_str(),
+                        format!("Failed to open file: {}", display_path).as_str(),
                     );
                     self.serve_error_response(HttpStatus::NotFound);
                     stream.write_all(self.to_bytes().as_slice())?;
@@ -377,7 +375,8 @@ impl Response {
         let mut file = match File::open(&self._path) {
             Ok(file) => file,
             Err(_) => {
-                Logger::error(format!("Failed to open file: {}", self._path.display()).as_str());
+                let display_path = Utils::path_prettifier(self._path.clone());
+                Logger::error(format!("Failed to open file: {}", display_path).as_str());
                 self.serve_error_response(HttpStatus::NotFound);
                 stream.write_all(self.to_bytes().as_slice())?;
                 stream.flush()?;
