@@ -1,5 +1,6 @@
 use std::env;
 use std::fs::{self, Metadata, ReadDir};
+use std::net::TcpStream;
 use std::path::{Component, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -269,5 +270,12 @@ impl Utils {
             let prettified = path.to_str().unwrap().replace('\\', "/");
 
         prettified
+    }
+
+    pub fn get_peer_ip(stream: &TcpStream) -> String {
+        match stream.peer_addr() {
+            Ok(addr) => addr.ip().to_string(),
+            Err(_) => "unknown".to_string(),
+        }
     }
 }
