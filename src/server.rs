@@ -34,15 +34,6 @@ impl Server {
         Logger::debug("[Server] Server is ready to accept connections");
 
         for stream in listener.incoming().flatten() {
-            Logger::debug(
-                format!(
-                    "[Server] New connection from {}",
-                    stream
-                        .peer_addr()
-                        .unwrap_or_else(|_| "[unknown]".parse().unwrap())
-                )
-                .as_str(),
-            );
             // spawn a new thread for each connection
             let config = self.config.clone();
             let templates = self.templates.clone();
@@ -55,7 +46,19 @@ impl Server {
         }
     }
 
+    pub fn log_source_ip(&self, stream: &TcpStream) {
+        Logger::debug(
+            format!(
+                "New connection from {}",
+                Utils::get_peer_ip(stream)
+            )
+            .as_str(),
+        );
+    }
+
     pub fn handle_request(&self, mut stream: TcpStream) {
+        self.log_source_ip(&stream);
+        
         if let Some(request) = Request::from_stream(&stream) {
             Logger::debug(
                 format!(
