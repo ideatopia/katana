@@ -4,17 +4,17 @@ use crate::server::Server;
 use crate::templates::{Templates, TemplatesPage};
 use std::collections::HashMap;
 
+pub mod colorful;
 pub mod config;
 pub mod filetype;
 pub mod http;
+pub mod keyval;
 pub mod logger;
 pub mod request;
 pub mod response;
 pub mod server;
 pub mod templates;
 pub mod utils;
-pub mod colorful;
-pub mod keyval;
 
 pub struct Katana {
     pub config: Config,
@@ -38,9 +38,7 @@ impl Katana {
     pub fn start(&self) {
         self.show_banner();
         let server = Server::new(self.config.to_owned(), self.templates.to_owned());
-        Logger::info(
-            format!("Server starting on {}", server.addr_with_protocol()).as_str(),
-        );
+        Logger::info(format!("Server starting on {}", server.addr_with_protocol()).as_str());
         server.serve();
     }
 

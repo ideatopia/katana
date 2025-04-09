@@ -1,5 +1,6 @@
 use std::env;
-use std::fs::{self, ReadDir};
+use std::fs::{self, Metadata, ReadDir};
+use std::net::TcpStream;
 use std::path::{Component, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -89,7 +90,18 @@ impl Utils {
 
             // Days in each month (adjust for leap year)
             let month_days = [
-                31, if is_leap_year(year) { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+                31,
+                if is_leap_year(year) { 29 } else { 28 },
+                31,
+                30,
+                31,
+                30,
+                31,
+                31,
+                30,
+                31,
+                30,
+                31,
             ];
 
             let mut month = 0;
@@ -143,7 +155,18 @@ impl Utils {
 
             // Days in each month (adjust for leap year)
             let month_days = [
-                31, if is_leap_year(year) { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+                31,
+                if is_leap_year(year) { 29 } else { 28 },
+                31,
+                30,
+                31,
+                30,
+                31,
+                31,
+                30,
+                31,
+                30,
+                31,
             ];
             let month_names = [
                 "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -163,7 +186,7 @@ impl Utils {
 
             if m <= 2 {
                 m += 12; // Jan, Feb become 13, 14
-                y -= 1;  // Adjust year
+                y -= 1; // Adjust year
             }
 
             let k: i32 = y % 100;
@@ -215,5 +238,44 @@ impl Utils {
         );
 
         datetime
+    }
+
+    pub fn is_readable(path: PathBuf) -> bool {
+        let metadata = fs::metadata(path).expect("Unable to read metadata");
+        Self::is_readable_from_metadata(metadata)
+    }
+
+    pub fn is_readable_from_metadata(metadata: Metadata) -> bool {
+        #[cfg(unix)]
+        let is_readable = {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = metadata.permissions().mode();
+            (mode & 0o444) != 0 // check if file has read permission
+        };
+
+        #[cfg(windows)]
+        let is_readable = {
+            !metadata.permissions().readonly() // on Windows, check if file is not readonly
+        };
+
+        is_readable
+    }
+
+    pub fn path_prettifier(path: PathBuf) -> String {
+        // use correct path separator based on system type for display purpose
+        #[cfg(target_os = "windows")]
+            let prettified = path.to_str().unwrap().replace('/', "\\");
+
+        #[cfg(not(target_os = "windows"))]
+            let prettified = path.to_str().unwrap().replace('\\', "/");
+
+        prettified
+    }
+
+    pub fn get_peer_ip(stream: &TcpStream) -> String {
+        match stream.peer_addr() {
+            Ok(addr) => addr.ip().to_string(),
+            Err(_) => "unknown".to_string(),
+        }
     }
 }

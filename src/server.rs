@@ -33,27 +33,41 @@ impl Server {
         let listener = TcpListener::bind(self.addr().as_str()).unwrap();
         Logger::debug("[Server] Server is ready to accept connections");
 
-        for stream in listener.incoming() {
-            if let Ok(stream) = stream {
-                Logger::debug(format!("[Server] New connection from {}", 
-                    stream.peer_addr().unwrap_or_else(|_| "[unknown]".parse().unwrap())).as_str());
-                // spawn a new thread for each connection
-                let config = self.config.clone();
-                let templates = self.templates.clone();
+        for stream in listener.incoming().flatten() {
+            // spawn a new thread for each connection
+            let config = self.config.clone();
+            let templates = self.templates.clone();
 
-                thread::spawn(move || {
-                    // create a new server instance for the thread with the necessary data
-                    let server = Server::new(config, templates);
-                    server.handle_request(stream);
-                });
-            }
+            thread::spawn(move || {
+                // create a new server instance for the thread with the necessary data
+                let server = Server::new(config, templates);
+                server.handle_request(stream);
+            });
         }
     }
 
+    pub fn log_source_ip(&self, stream: &TcpStream) {
+        Logger::debug(
+            format!(
+                "New connection from {}",
+                Utils::get_peer_ip(stream)
+            )
+            .as_str(),
+        );
+    }
+
     pub fn handle_request(&self, mut stream: TcpStream) {
+        self.log_source_ip(&stream);
+        
         if let Some(request) = Request::from_stream(&stream) {
-            Logger::debug(format!("[Server] Request received: {} {}", 
-                request.method.as_str(), request.path).as_str());
+            Logger::debug(
+                format!(
+                    "[Server] Request received: {} {}",
+                    request.method.as_str(),
+                    request.path
+                )
+                .as_str(),
+            );
             self.handle_response(request, &mut stream);
         } else {
             Logger::warn("[Server] Failed to read request");
@@ -68,14 +82,19 @@ impl Server {
 
             let result = response.stream(stream.deref_mut());
             match result {
-                Ok(_response) => { 
-                    Logger::debug(format!("[Server] Response sent successfully: {}", 
-                        response.status_code.to_code()).as_str());
-                    Self::log_response(&response) 
-                },
+                Ok(_response) => {
+                    Logger::debug(
+                        format!(
+                            "[Server] Response sent successfully: {}",
+                            response.status_code.to_code()
+                        )
+                        .as_str(),
+                    );
+                    Self::log_response(&response)
+                }
                 Err(e) => {
                     Logger::error(format!("[Server] Stream error: {}", e).as_str());
-                },
+                }
             }
         } else {
             Logger::warn("[Server] Failed to create response");
@@ -112,19 +131,23 @@ impl Server {
             // do not return body
             response.body = Vec::new();
 
-            response.headers.add("Date".to_string(), Utils::datetime_rfc_1123().to_string());
+            response
+                .headers
+                .add("Date".to_string(), Utils::datetime_rfc_1123().to_string());
             response.headers.add(
                 "Allow".to_string(),
                 HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
             );
             // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            response.headers.add("Access-Control-Allow-Origin".to_string(), "*".to_string());
+            response
+                .headers
+                .add("Access-Control-Allow-Origin".to_string(), "*".to_string());
             response.headers.add(
                 "Access-Control-Allow-Methods".to_string(),
                 HttpMethod::comma_separated(Self::SUPPORTED_HTTP_METHODS),
             );
             // response.headers.add(
-            //     "Access-Control-Allow-Headers".to_string(), 
+            //     "Access-Control-Allow-Headers".to_string(),
             //     "content-type, accept".to_string()
             // );
         }
@@ -183,7 +206,7 @@ impl Server {
             "\"{}\" {} {}",
             status_line,
             response.status_code.to_code(),
-            response._size,
+            response.size,
         );
         Logger::info(log_message);
     }

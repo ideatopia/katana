@@ -1,16 +1,16 @@
-use std::cmp::min;
 use crate::filetype::FileType;
 use crate::http::{HttpStatus, HttpVersion};
+use crate::keyval::KeyVal;
+use crate::logger::Logger;
 use crate::request::Request;
 use crate::templates::{Templates, TemplatesPage};
 use crate::utils::Utils;
+use std::cmp::min;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom, Write};
 use std::net::TcpStream;
-use std::path::PathBuf;
-use crate::logger::Logger;
-use crate::keyval::KeyVal;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct Response {
@@ -21,10 +21,10 @@ pub struct Response {
     pub headers: KeyVal,
     pub cookies: KeyVal,
     pub body: Vec<u8>,
-    pub _size: usize,
+    pub size: usize,
     pub _path: PathBuf,
-    pub _need_stream: bool,
-    pub _is_compiled: bool,
+    _need_stream: bool,
+    _is_compiled: bool,
 }
 
 impl Response {
@@ -40,7 +40,7 @@ impl Response {
             headers: KeyVal::new(),
             cookies: KeyVal::new(),
             body: Vec::new(),
-            _size: 0,
+            size: 0,
             _path: PathBuf::new(),
             _need_stream: false,
             _is_compiled: false,
@@ -49,11 +49,15 @@ impl Response {
         Some(response)
     }
 
-    pub fn serve(&mut self, root_dir: &PathBuf) -> &mut Response {
-        Logger::debug(format!("[Response] Serving request for path: {}", self.request.path).as_str());
-        
+    pub fn serve(&mut self, root_dir: &Path) -> &mut Response {
+        Logger::debug(
+            format!("[Response] Serving request for path: {}", self.request.path).as_str(),
+        );
+
         let file_path = root_dir.join(&self.request.path[1..]);
-        
+
+        file_path.clone_into(&mut self._path);
+
         if file_path.is_dir() {
             let index_html = file_path.join("index.html");
             if index_html.is_file() {
@@ -67,15 +71,17 @@ impl Response {
             Logger::debug("[Response] Serving file");
             self.serve_file(root_dir, file_path);
         } else {
-            Logger::warn(format!("[Response] Path not found: {}", file_path.display()).as_str());
+            let display_path = Utils::path_prettifier(file_path.clone());
+            Logger::warn(format!("[Response] Path not found: {}", display_path).as_str());
             self.serve_error_response(HttpStatus::NotFound);
         }
 
         self
     }
 
-    fn serve_file(&mut self, root_path: &PathBuf, path: PathBuf) {
-        Logger::debug(format!("[Response] Attempting to serve file: {}", path.display()).as_str());
+    fn serve_file(&mut self, root_path: &Path, path: PathBuf) {
+        let display_path = Utils::path_prettifier(path.clone());
+        Logger::debug(format!("[Response] Attempting to serve file: {}", display_path).as_str());
 
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 
@@ -99,7 +105,7 @@ impl Response {
             return;
         }
 
-        self._path = path.to_owned();
+        path.clone_into(&mut self._path);
 
         match File::open(&path) {
             Ok(_file) => {
@@ -114,17 +120,25 @@ impl Response {
                 // get file size without reading
                 let metadata = std::fs::metadata(&path).expect("Unable to read metadata"); // self.body.len().to_string()
                 let file_size = metadata.len();
-                let is_readable = metadata.permissions().readonly();
+                let is_readable = Utils::is_readable_from_metadata(metadata.clone());
 
                 if !is_readable {
-                    Logger::error(format!("[Response] File not readable: {}", path.display()).as_str());
+                    Logger::error(
+                        format!("[Response] File not readable: {}", path.display()).as_str(),
+                    );
                     self.serve_error_response(HttpStatus::InternalServerError);
                 }
 
-                self._size = file_size as usize;
+                self.size = file_size as usize;
 
-                if self._size > Response::MAX_SIZE_ALL_AT_ONCE {
-                    Logger::debug(format!("[Response] File size {} exceeds MAX_SIZE_ALL_AT_ONCE, will stream", self._size).as_str());
+                if self.size > Response::MAX_SIZE_ALL_AT_ONCE {
+                    Logger::debug(
+                        format!(
+                            "[Response] File size {} exceeds MAX_SIZE_ALL_AT_ONCE, will stream",
+                            self.size
+                        )
+                        .as_str(),
+                    );
                     self._need_stream = true;
                 }
 
@@ -143,9 +157,15 @@ impl Response {
         }
     }
 
-    fn serve_directory(&mut self, root_path: &PathBuf, path: PathBuf) {
-        Logger::debug(format!("[Response] Serving directory listing for: {}", path.display()).as_str());
-        
+    fn serve_directory(&mut self, root_path: &Path, path: PathBuf) {
+        Logger::debug(
+            format!(
+                "[Response] Serving directory listing for: {}",
+                path.display()
+            )
+            .as_str(),
+        );
+
         self._is_compiled = true;
 
         let mut listing_html = String::new();
@@ -166,7 +186,7 @@ impl Response {
             return;
         }
 
-        self._path = path.to_owned();
+        self._path.clone_from(&path);
 
         let entries = Utils::walk_dir(&path);
         Logger::debug(format!("[Response] Found {} entries in directory", entries.len()).as_str());
@@ -216,9 +236,10 @@ impl Response {
             .into_bytes();
         self.status_code = HttpStatus::Ok;
         self.headers.clear();
-        self.headers.add("Content-Type".to_string(), "text/html".to_string());
+        self.headers
+            .add("Content-Type".to_string(), "text/html".to_string());
 
-        self._size = self.body.len()
+        self.size = self.body.len()
     }
 
     fn serve_error_response(&mut self, status: HttpStatus) {
@@ -236,9 +257,10 @@ impl Response {
             .render(TemplatesPage::ERROR, params)
             .into_bytes();
         self.headers.clear();
-        self.headers.add("Content-Type".to_string(), "text/html".to_string());
+        self.headers
+            .add("Content-Type".to_string(), "text/html".to_string());
 
-        self._size = self.body.len()
+        self.size = self.body.len()
     }
 
     pub fn http_description(&self) -> String {
@@ -285,11 +307,12 @@ impl Response {
 
     pub fn stream(&mut self, stream: &mut TcpStream) -> Result<(), Error> {
         Logger::debug("[Response] Starting stream response");
-        
-        self.headers.add("Content-Length".to_string(), self._size.to_string());
+
+        self.headers
+            .add("Content-Length".to_string(), self.size.to_string());
 
         if self._is_compiled {
-            if self.body.len() == 0 {
+            if self.body.is_empty() {
                 Logger::error("[Response] Body is empty while expecting compiled content");
                 self.serve_error_response(HttpStatus::InternalServerError);
                 stream.write_all(self.to_bytes().as_slice())?;
@@ -307,7 +330,10 @@ impl Response {
             let mut file = match File::open(&self._path) {
                 Ok(file) => file,
                 Err(_) => {
-                    Logger::error(format!("Failed to open file: {}", self._path.display()).as_str());
+                    let display_path = Utils::path_prettifier(self._path.clone());
+                    Logger::error(
+                        format!("Failed to open file: {}", display_path).as_str(),
+                    );
                     self.serve_error_response(HttpStatus::NotFound);
                     stream.write_all(self.to_bytes().as_slice())?;
                     stream.flush()?;
@@ -316,7 +342,7 @@ impl Response {
             };
 
             // read into a buffer
-            let mut buffer = vec![0; self._size];
+            let mut buffer = vec![0; self.size];
             file.read_exact(&mut buffer)?;
             self.body = buffer;
 
@@ -325,14 +351,16 @@ impl Response {
             return Ok(());
         }
 
-        let _ : Result<(), Error>  = match self.stream_by_chunk(stream) {
+        let _: Result<(), Error> = match self.stream_by_chunk(stream) {
             Ok(_) => Ok(()),
             Err(error) => {
-                Logger::error(format!("[Response] Error while streaming by chunk: {}", error).as_str());
+                Logger::error(
+                    format!("[Response] Error while streaming by chunk: {}", error).as_str(),
+                );
                 self.serve_error_response(HttpStatus::InternalServerError);
                 stream.write_all(self.to_bytes().as_slice())?;
                 return Ok(());
-            },
+            }
         };
 
         Ok(())
@@ -346,7 +374,8 @@ impl Response {
         let mut file = match File::open(&self._path) {
             Ok(file) => file,
             Err(_) => {
-                Logger::error(format!("Failed to open file: {}", self._path.display()).as_str());
+                let display_path = Utils::path_prettifier(self._path.clone());
+                Logger::error(format!("Failed to open file: {}", display_path).as_str());
                 self.serve_error_response(HttpStatus::NotFound);
                 stream.write_all(self.to_bytes().as_slice())?;
                 stream.flush()?;
@@ -354,17 +383,31 @@ impl Response {
             }
         };
 
-        Logger::debug(format!("[Response] Sending response in chunks with size: {}", self._size).as_str());
+        Logger::debug(
+            format!(
+                "[Response] Sending response in chunks with size: {}",
+                self.size
+            )
+            .as_str(),
+        );
 
-        self.headers.add("Content-Length".to_string(), self._size.to_string());
+        self.headers
+            .add("Content-Length".to_string(), self.size.to_string());
 
         // @see: https://datatracker.ietf.org/doc/html/rfc7233
-        self.headers.add("Accept-Ranges".to_string(), "bytes".to_string());
+        self.headers
+            .add("Accept-Ranges".to_string(), "bytes".to_string());
 
         // check if range header is present
-        if let Some(range) = self.request.headers.iter().find(|(k, _)| k.to_lowercase() == "range".to_string()).map(|(_, v)| v) {
+        if let Some(range) = self
+            .request
+            .headers
+            .iter()
+            .find(|(k, _)| k.to_lowercase() == *"range")
+            .map(|(_, v)| v)
+        {
             Logger::debug(format!("[Response] Processing range request: {}", range).as_str());
-            
+
             // parse range header value and extract bytes start, end
             if !range.starts_with("bytes=") {
                 self.serve_error_response(HttpStatus::BadRequest);
@@ -382,13 +425,16 @@ impl Response {
             }
 
             let start = range_values[0].parse::<usize>().unwrap_or(0);
-            let end = range_values[1].parse::<usize>().unwrap_or(self._size - 1);
+            let end = range_values[1].parse::<usize>().unwrap_or(self.size - 1);
 
-            if start >= self._size || end >= self._size || start > end {
+            if start >= self.size || end >= self.size || start > end {
                 // return http 416 Range Not Satisfiable
                 // @see: https://http.dev/416
                 self.status_code = HttpStatus::RangeNotSatisfiable;
-                self.headers.add("Content-Range".to_string(), format!("bytes */{}", self._size));
+                self.headers.add(
+                    "Content-Range".to_string(),
+                    format!("bytes */{}", self.size),
+                );
                 stream.write_all(self.http_description().as_bytes())?;
                 stream.write_all(b"\r\n")?;
                 stream.flush()?;
@@ -397,10 +443,12 @@ impl Response {
 
             // set status code for response to 206
             self.status_code = HttpStatus::PartialContent;
-            self.headers.add("Content-Range".to_string(),
-                               format!("bytes {}-{}/{}", start, end, self._size));
-            self.headers.add("Content-Length".to_string(),
-                               (end - start + 1).to_string());
+            self.headers.add(
+                "Content-Range".to_string(),
+                format!("bytes {}-{}/{}", start, end, self.size),
+            );
+            self.headers
+                .add("Content-Length".to_string(), (end - start + 1).to_string());
 
             stream.write_all(self.http_description().as_bytes())?;
             stream.write_all(b"\r\n")?;

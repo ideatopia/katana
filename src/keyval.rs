@@ -5,6 +5,12 @@ pub struct KeyVal {
     map: HashMap<String, String>,
 }
 
+impl Default for KeyVal {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl KeyVal {
     pub fn new() -> Self {
         KeyVal {

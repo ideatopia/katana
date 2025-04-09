@@ -1,7 +1,7 @@
-use std::io::Write;
+use crate::colorful::Colored;
 use crate::config::Config;
 use crate::utils::Utils;
-use crate::colorful::{Colored};
+use std::io::Write;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[allow(dead_code)]

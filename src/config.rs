@@ -1,4 +1,4 @@
-use crate::logger::{Logger, LogLevel};
+use crate::logger::{LogLevel, Logger};
 use std::env::args;
 use std::path::PathBuf;
 
@@ -49,7 +49,7 @@ impl Config {
                 }
                 "--host" => {
                     if i + 1 < args.len() {
-                        host = args[i + 1].clone();
+                        host.clone_from(&args[i + 1]);
                         i += 1;
                     }
                 }
@@ -67,9 +67,12 @@ impl Config {
                 }
                 "--log-level" => {
                     if i + 1 < args.len() {
-                        log_level = LogLevel::from_str(&args[i + 1].to_uppercase())
-                            .unwrap_or_else(|| {
-                                Logger::warn(format!("Invalid log level '{}', using default", args[i + 1]).as_str());
+                        log_level =
+                            LogLevel::from_str(&args[i + 1].to_uppercase()).unwrap_or_else(|| {
+                                Logger::warn(
+                                    format!("Invalid log level '{}', using default", args[i + 1])
+                                        .as_str(),
+                                );
                                 Self::DEFAULT_LOG_LEVEL
                             });
                         i += 1;
