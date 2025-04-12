@@ -20,7 +20,7 @@ impl Default for Katana {
 impl Katana {
     pub fn new() -> Self {
         Self {
-            config: Config::load_args(),
+            config: Config::load(),
             templates: Templates::load(),
         }
     }

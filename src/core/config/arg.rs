@@ -1,7 +1,6 @@
 use std::env::args;
 use std::path::PathBuf;
-use crate::core::utils::logger::{Logger, LogLevel};
-use super::default::DefaultConfig;
+use crate::core::utils::logger::LogLevel;
 use super::config::Config;
 
 pub fn load_args() -> Config {
@@ -10,59 +9,42 @@ pub fn load_args() -> Config {
 }
 
 pub fn parse_args(args: Vec<String>) -> Config {
-    let mut host = if cfg!(target_family = "windows") {
-        DefaultConfig::HOST_WINDOWS.to_string()
-    } else {
-        DefaultConfig::HOST_UNIX.to_string()
-    };
-    let mut port = DefaultConfig::PORT;
-    let mut root_dir = PathBuf::from(DefaultConfig::ROOT_DIR);
-    let mut worker = DefaultConfig::WORKER;
-    let mut log_level = DefaultConfig::LOG_LEVEL;
+    let mut host = None;
+    let mut port = None;
+    let mut root_dir = None;
+    let mut worker = None;
+    let mut log_level = None;
 
     let mut i = 1;
     while i < args.len() {
         match args[i].as_str() {
             "--port" => {
                 if i + 1 < args.len() {
-                    port = args[i + 1].parse().unwrap_or(DefaultConfig::PORT);
+                    port = args[i + 1].parse().ok();
                     i += 1;
                 }
             }
             "--dir" => {
                 if i + 1 < args.len() {
-                    root_dir = PathBuf::from(&args[i + 1]);
+                    root_dir = Some(PathBuf::from(&args[i + 1]));
                     i += 1;
                 }
             }
             "--host" => {
                 if i + 1 < args.len() {
-                    host.clone_from(&args[i + 1]);
+                    host = Some(args[i + 1].clone());
                     i += 1;
                 }
             }
             "--worker" => {
                 if i + 1 < args.len() {
-                    if let Ok(parsed_worker) = args[i + 1].parse::<i32>() {
-                        if parsed_worker > DefaultConfig::MIN_WORKER {
-                            worker = parsed_worker;
-                        } else {
-                            Logger::error("worker cannot be less than 1");
-                        }
-                    }
+                    worker = args[i + 1].parse().ok();
                     i += 1;
                 }
             }
             "--log-level" => {
                 if i + 1 < args.len() {
-                    log_level =
-                        LogLevel::from_str(&args[i + 1].to_uppercase()).unwrap_or_else(|| {
-                            Logger::warn(
-                                format!("Invalid log level '{}', using default", args[i + 1])
-                                    .as_str(),
-                            );
-                            DefaultConfig::LOG_LEVEL
-                        });
+                    log_level = LogLevel::from_str(&args[i + 1].to_uppercase());
                     i += 1;
                 }
             }
@@ -72,10 +54,10 @@ pub fn parse_args(args: Vec<String>) -> Config {
     }
 
     Config {
-        host,
-        port,
-        root_dir,
-        worker,
-        log_level,
+        host: host.unwrap_or_default(),
+        port: port.unwrap_or_default(),
+        root_dir: root_dir.unwrap_or_default(),
+        worker: worker.unwrap_or_default(),
+        log_level: log_level.unwrap_or(LogLevel::INFO),
     }
 }
