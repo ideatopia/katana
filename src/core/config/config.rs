@@ -1,6 +1,6 @@
-use crate::logger::{LogLevel, Logger};
 use std::env::args;
 use std::path::PathBuf;
+use crate::core::utils::logger::{Logger, LogLevel};
 
 #[derive(Debug, Clone)]
 pub struct Config {

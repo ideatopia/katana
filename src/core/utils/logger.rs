@@ -1,6 +1,6 @@
-use crate::colorful::Colored;
-use crate::config::Config;
-use crate::utils::Utils;
+use crate::core::utils::colorful::Colored;
+use crate::core::utils::utils::Utils;
+use crate::core::config::config::Config;
 use std::io::Write;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

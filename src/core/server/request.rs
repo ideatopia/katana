@@ -1,7 +1,7 @@
-use crate::http::{HttpMethod, HttpVersion};
-use crate::keyval::KeyVal;
-use crate::logger::Logger;
-use crate::server::Server;
+use crate::core::server::http::{HttpMethod, HttpVersion};
+use crate::core::utils::keyval::KeyVal;
+use crate::core::utils::logger::Logger;
+use crate::core::server::server::Server;
 use std::io::{BufRead, BufReader, Read};
 use std::net::TcpStream;
 

@@ -1,5 +1,5 @@
-use crate::logger::Logger;
 use std::collections::HashMap;
+use crate::core::utils::logger::Logger;
 
 #[derive(Debug, Clone)]
 pub enum TemplatesPage {
@@ -15,13 +15,19 @@ pub struct Templates {
     pub directory: String,
 }
 
+macro_rules! include_template {
+    ($file:expr) => {
+        include_str!(concat!("../../../templates", $file))
+    };
+}
+
 impl Templates {
     pub fn load() -> Self {
         Logger::debug("[Templates] Loading template files");
         let templates = Templates {
-            banner: String::from(include_str!("../templates/banner.txt")),
-            error: String::from(include_str!("../templates/error.html")),
-            directory: String::from(include_str!("../templates/directory.html")),
+            banner: String::from(include_template!("/banner.txt")),
+            error: String::from(include_template!("/error.html")),
+            directory: String::from(include_template!("/directory.html")),
         };
         Logger::debug("[Templates] Template files loaded successfully");
         templates
