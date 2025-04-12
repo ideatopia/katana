@@ -14,4 +14,8 @@ impl Config {
     pub fn load_args() -> Self {
         super::arg::load_args()
     }
+    
+    pub fn load_env() -> Self {
+        super::env::load_env()
+    }
 }
