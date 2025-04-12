@@ -15,8 +15,8 @@ impl Config {
         // config sources in priority order
         let configs = vec![
             super::default::DefaultConfig::as_config(),
-            Self::load_args(),
             Self::load_env(),
+            Self::load_args(),
         ];
 
         configs.into_iter().fold(Config::default(), |acc, curr| {
