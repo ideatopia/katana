@@ -3,4 +3,12 @@ name = "katana"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "katana"
+path = "src/lib.rs"
+
+[[bin]]
+name = "katana"
+path = "src/main.rs"
+
 [dependencies]

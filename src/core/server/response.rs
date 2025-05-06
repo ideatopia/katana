@@ -1,10 +1,10 @@
-use crate::filetype::FileType;
-use crate::http::{HttpStatus, HttpVersion};
-use crate::keyval::KeyVal;
-use crate::logger::Logger;
-use crate::request::Request;
-use crate::templates::{Templates, TemplatesPage};
-use crate::utils::Utils;
+use crate::core::server::filetype::FileType;
+use crate::core::server::http::{HttpStatus, HttpVersion};
+use crate::core::utils::keyval::KeyVal;
+use crate::core::utils::logger::Logger;
+use crate::core::server::request::Request;
+use crate::core::resources::templates::{Templates, TemplatesPage};
+use crate::core::utils::utils::Utils;
 use std::cmp::min;
 use std::collections::HashMap;
 use std::fs::File;

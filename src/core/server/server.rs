@@ -1,10 +1,10 @@
-use crate::config::Config;
-use crate::http::{HttpMethod, HttpStatus};
-use crate::logger::Logger;
-use crate::request::Request;
-use crate::response::Response;
-use crate::templates::Templates;
-use crate::utils::Utils;
+use crate::core::config::config::Config;
+use crate::core::server::http::{HttpMethod, HttpStatus};
+use crate::core::utils::logger::Logger;
+use crate::core::server::request::Request;
+use crate::core::server::response::Response;
+use crate::core::resources::templates::Templates;
+use crate::core::utils::utils::Utils;
 use std::net::{TcpListener, TcpStream};
 use std::ops::DerefMut;
 use std::thread;
