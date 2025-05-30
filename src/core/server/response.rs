@@ -375,6 +375,8 @@ impl Response {
             }
         };
 
+        stream.flush()?;
+
         Ok(())
     }
 
