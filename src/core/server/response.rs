@@ -325,6 +325,13 @@ impl Response {
         self.headers
             .add("Content-Length".to_string(), self.size.to_string());
 
+        // only for http/1.1
+        if self.http_version == HttpVersion::Http11 {
+            // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Connection
+            self.headers
+                .add("Connection".to_string(), "close".to_string());
+        }
+
         if self._is_compiled {
             if self.body.is_empty() {
                 Logger::error("[Response] Body is empty while expecting compiled content");
