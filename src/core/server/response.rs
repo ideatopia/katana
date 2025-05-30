@@ -162,7 +162,10 @@ impl Response {
                     content_disposition.to_string(),
                 );
             }
-            Err(_) => self.serve_error_response(HttpStatus::NotFound),
+            Err(_) => {
+                Logger::error(format!("[Response] File not found: {}", display_path).as_str());
+                self.serve_error_response(HttpStatus::NotFound);
+            }
         }
     }
 
