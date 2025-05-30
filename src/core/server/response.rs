@@ -9,7 +9,7 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom, Write};
-use std::net::TcpStream;
+use std::net::{Shutdown, TcpStream};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -378,6 +378,8 @@ impl Response {
         };
 
         stream.flush()?;
+
+        stream.shutdown(Shutdown::Both)?;
 
         Ok(())
     }
