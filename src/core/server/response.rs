@@ -255,6 +255,8 @@ impl Response {
     }
 
     fn serve_error_response(&mut self, status: HttpStatus) {
+        self._is_compiled = true; // mark as compiled to avoid streaming
+
         let mut params = HashMap::new();
         params.insert("status_code".to_string(), status.to_code().to_string());
         params.insert("status_text".to_string(), status.to_message().to_string());
