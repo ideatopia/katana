@@ -109,7 +109,7 @@ impl Response {
 
         match File::open(&path) {
             Ok(_file) => {
-                let extension = path.extension().unwrap().to_str().unwrap();
+                let extension = path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
 
                 let file_type = FileType::from_extension(extension)
                     .unwrap_or_else(|| FileType::new("bin", "application/octet-stream"));
@@ -144,6 +144,15 @@ impl Response {
 
                 self.status_code = HttpStatus::Ok;
                 self.headers.clear();
+
+                // @see: https://stackoverflow.com/a/28652339/13158370
+                if extension == "" {
+                    Logger::debug("[Response] No extension found, not using content type");
+                    return;
+                }
+
+                Logger::debug(format!("[Response] Found extension: {}", extension).as_str());
+
                 self.headers.add(
                     "Content-Type".to_string(),
                     file_type.content_type.to_string(),
