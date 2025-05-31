@@ -1,0 +1,32 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Katana Server - Main configuration file
+# ─────────────────────────────────────────────────────────────────────────
+# Format: TOML (https://toml.io)
+# Filename: .katana
+#
+# This file controls how the Katana server runs. It is written in TOML,
+# a simple and readable configuration format.
+#
+# Principles to follow when making changes:
+#   1. Security       : Always use safe default values
+#   2. Performance    : Adjust workers and ports to system resources
+#   3. Accessibility  : Use clear and explicit settings
+#   4. Maintainability: Document any non-standard configuration
+# ─────────────────────────────────────────────────────────────────────────
+
+[katana]
+
+# Server host (use "127.0.0.1" for local access only)
+host = "127.0.0.1"
+
+# Port number to run the server on
+port = 8081
+
+# Directory to serve static files from
+root_dir = "public"
+
+# Number of worker threads for handling requests
+worker = 4
+
+# Logging level: DEBUG, INFO, WARN, ERROR
+log_level = "INFO"

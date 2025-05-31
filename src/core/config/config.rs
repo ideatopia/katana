@@ -14,7 +14,7 @@ impl Config {
     pub fn load() -> Self {
         // config sources in priority order
         let configs = vec![
-            super::default::DefaultConfig::as_config(),
+            Self::load_file(), // load .katana file, but if file not exist, return default config
             Self::load_env(),
             Self::load_args(),
         ];
@@ -40,5 +40,9 @@ impl Config {
     
     pub fn load_env() -> Self {
         super::env::load_env()
+    }
+
+    pub fn load_file() -> Self {
+        super::file::load_file()
     }
 }
