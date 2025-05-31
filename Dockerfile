@@ -15,10 +15,10 @@ RUN cargo build --release --target=x86_64-unknown-linux-musl
 # Stage 2: Runtime
 FROM alpine:latest
 
-ENV HOST=0.0.0.0
-ENV PORT=8080
-ENV ROOT_DIR=public
-ENV WORKER=4
+ENV KATANA_HOST=0.0.0.0
+ENV KATANA_PORT=8080
+ENV KATANA_ROOT=public
+ENV KATANA_WORKER=4
 
 WORKDIR /app
 
