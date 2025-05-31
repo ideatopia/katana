@@ -12,7 +12,7 @@ pub fn load_env() -> Config {
         .ok()
         .and_then(|p| p.parse().ok());
 
-    let root_dir = env::var("KATANA_ROOT")
+    let document_root = env::var("KATANA_DOCUMENT_ROOT")
         .map(PathBuf::from)
         .ok();
 
@@ -27,7 +27,7 @@ pub fn load_env() -> Config {
     Config {
         host: host.unwrap_or_default(),
         port: port.unwrap_or_default(),
-        root_dir: root_dir.unwrap_or_default(),
+        document_root: document_root.unwrap_or_default(),
         worker: worker.unwrap_or_default(),
         log_level: log_level.unwrap_or(LogLevel::DEBUG),
     }

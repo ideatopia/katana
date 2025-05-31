@@ -7,8 +7,8 @@ use crate::core::utils::toml::{TomlParser, TomlValue};
 
 pub fn load_file() -> Config {
     // Use the root directory of the project
-    let root_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    let katana_file_path = root_dir.join(".katana");
+    let document_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let katana_file_path = document_root.join(".katana");
 
     let mut parser = TomlParser::new();
 
@@ -56,13 +56,13 @@ pub fn load_file() -> Config {
         DefaultConfig::PORT
     };
 
-    let root_dir = if let Some(TomlValue::Table(table)) = katana {
-        match table.get("root_dir") {
+    let document_root = if let Some(TomlValue::Table(table)) = katana {
+        match table.get("document_root") {
             Some(TomlValue::String(dir)) => PathBuf::from(dir),
-            _ => PathBuf::from(DefaultConfig::ROOT_DIR),
+            _ => PathBuf::from(DefaultConfig::DOCUMENT_ROOT),
         }
     } else {
-        PathBuf::from(DefaultConfig::ROOT_DIR)
+        PathBuf::from(DefaultConfig::DOCUMENT_ROOT)
     };
 
     let worker = if let Some(TomlValue::Table(table)) = katana {
@@ -87,7 +87,7 @@ pub fn load_file() -> Config {
     Config {
         host,
         port,
-        root_dir,
+        document_root,
         worker,
         log_level,
     }

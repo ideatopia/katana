@@ -23,7 +23,7 @@ host = "127.0.0.1"
 port = 8081
 
 # Directory to serve static files from
-root_dir = "public"
+document_root = "public"
 
 # Number of worker threads for handling requests
 worker = 4

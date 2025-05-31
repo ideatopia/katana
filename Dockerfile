@@ -17,11 +17,11 @@ FROM alpine:latest
 
 ENV KATANA_HOST=0.0.0.0
 ENV KATANA_PORT=8080
-ENV KATANA_ROOT=public
+ENV KATANA_DOCUMENT_ROOT=public
 ENV KATANA_WORKER=4
 
 WORKDIR /app
 
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/katana ./
 
-CMD ["sh", "-c","./katana", "--host", "${HOST}", "--port", "${PORT}", "--root-dir", "${ROOT_DIR}", "--worker", "${WORKER}"]
+CMD ["sh", "-c","./katana", "--host", "${HOST}", "--port", "${PORT}", "--document-root", "${KATANA_DOCUMENT_ROOT}", "--worker", "${WORKER}"]
