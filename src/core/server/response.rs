@@ -9,7 +9,7 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom, Write};
-use std::net::TcpStream;
+use std::net::{Shutdown, TcpStream};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -109,7 +109,7 @@ impl Response {
 
         match File::open(&path) {
             Ok(_file) => {
-                let extension = path.extension().unwrap().to_str().unwrap();
+                let extension = path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
 
                 let file_type = FileType::from_extension(extension)
                     .unwrap_or_else(|| FileType::new("bin", "application/octet-stream"));
@@ -144,6 +144,15 @@ impl Response {
 
                 self.status_code = HttpStatus::Ok;
                 self.headers.clear();
+
+                // @see: https://stackoverflow.com/a/28652339/13158370
+                if extension == "" {
+                    Logger::debug("[Response] No extension found, not using content type");
+                    return;
+                }
+
+                Logger::debug(format!("[Response] Found extension: {}", extension).as_str());
+
                 self.headers.add(
                     "Content-Type".to_string(),
                     file_type.content_type.to_string(),
@@ -153,7 +162,10 @@ impl Response {
                     content_disposition.to_string(),
                 );
             }
-            Err(_) => self.serve_error_response(HttpStatus::NotFound),
+            Err(_) => {
+                Logger::error(format!("[Response] File not found: {}", display_path).as_str());
+                self.serve_error_response(HttpStatus::NotFound);
+            }
         }
     }
 
@@ -243,6 +255,8 @@ impl Response {
     }
 
     fn serve_error_response(&mut self, status: HttpStatus) {
+        self._is_compiled = true; // mark as compiled to avoid streaming
+
         let mut params = HashMap::new();
         params.insert("status_code".to_string(), status.to_code().to_string());
         params.insert("status_text".to_string(), status.to_message().to_string());
@@ -311,6 +325,13 @@ impl Response {
         self.headers
             .add("Content-Length".to_string(), self.size.to_string());
 
+        // only for http/1.X
+        if self.http_version == HttpVersion::Http10 || self.http_version == HttpVersion::Http11 {
+            // @see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Connection
+            self.headers
+                .add("Connection".to_string(), "close".to_string());
+        }
+
         if self._is_compiled {
             if self.body.is_empty() {
                 Logger::error("[Response] Body is empty while expecting compiled content");
@@ -362,6 +383,10 @@ impl Response {
                 return Ok(());
             }
         };
+
+        stream.flush()?;
+
+        stream.shutdown(Shutdown::Both)?;
 
         Ok(())
     }
