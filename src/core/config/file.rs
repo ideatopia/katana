@@ -85,6 +85,7 @@ pub fn load_file() -> Config {
     };
 
     Config {
+        _source: crate::core::config::config::ConfigSource::File,
         host,
         port,
         document_root,

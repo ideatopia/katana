@@ -54,6 +54,7 @@ pub fn parse_args(args: Vec<String>) -> Config {
     }
 
     Config {
+        _source: crate::core::config::config::ConfigSource::Args,
         host: host.unwrap_or_default(),
         port: port.unwrap_or_default(),
         document_root: document_root.unwrap_or_default(),
