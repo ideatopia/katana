@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use crate::core::config::config::Config;
-use crate::core::config::default::DefaultConfig;
+use crate::core::config::default::load_default;
 use crate::core::utils::logger::{Logger, LogLevel};
 use crate::core::utils::toml::{TomlParser, TomlValue};
 
@@ -12,10 +12,12 @@ pub fn load_file() -> Config {
 
     let mut parser = TomlParser::new();
 
+    let default_config = load_default();
+
     if !katana_file_path.exists() {
         println!("{:?}", katana_file_path);
         Logger::warn("[Config:File] No .katana file found in the root directory");
-        return DefaultConfig::as_config();
+        return default_config;
     }
 
     let toml_string = fs::read_to_string(&katana_file_path).unwrap_or_else(|_| {
@@ -26,62 +28,34 @@ pub fn load_file() -> Config {
     parser.parse(&toml_string);
 
     // Extracting configuration values from the parser
-    let katana = parser.get_value("katana");
-
-    let host = if let Some(TomlValue::Table(table)) = katana {
-        match table.get("host") {
-            Some(TomlValue::String(h)) => h.clone(),
-            _ => {
-                if cfg!(target_family = "windows") {
-                    DefaultConfig::HOST_WINDOWS.to_string()
-                } else {
-                    DefaultConfig::HOST_UNIX.to_string()
-                }
-            }
-        }
-    } else {
-        if cfg!(target_family = "windows") {
-            DefaultConfig::HOST_WINDOWS.to_string()
-        } else {
-            DefaultConfig::HOST_UNIX.to_string()
-        }
+    let katana = match parser.get_value("katana") {
+        Some(TomlValue::Table(t)) => t,
+        _ => &std::collections::HashMap::new(), // use keyval later
     };
 
-    let port = if let Some(TomlValue::Table(table)) = katana {
-        match table.get("port") {
-            Some(TomlValue::Integer(p)) => *p as u16,
-            _ => DefaultConfig::PORT,
-        }
-    } else {
-        DefaultConfig::PORT
+    let host = match katana.get("host") {
+        Some(TomlValue::String(h)) => h.clone(),
+        _ => default_config.host.clone(),
     };
 
-    let document_root = if let Some(TomlValue::Table(table)) = katana {
-        match table.get("document_root") {
-            Some(TomlValue::String(dir)) => PathBuf::from(dir),
-            _ => PathBuf::from(DefaultConfig::DOCUMENT_ROOT),
-        }
-    } else {
-        PathBuf::from(DefaultConfig::DOCUMENT_ROOT)
+    let port = match katana.get("port") {
+        Some(TomlValue::Integer(p)) => *p as u16,
+        _ => default_config.port,
     };
 
-    let worker = if let Some(TomlValue::Table(table)) = katana {
-        match table.get("worker") {
-            Some(TomlValue::Integer(w)) => *w as i32,
-            _ => DefaultConfig::WORKER,
-        }
-    } else {
-        DefaultConfig::WORKER
+    let document_root = match katana.get("document_root") {
+        Some(TomlValue::String(dir)) => PathBuf::from(dir),
+        _ => default_config.document_root.clone(),
     };
 
-    let log_level = if let Some(TomlValue::Table(table)) = katana {
-        if let Some(TomlValue::String(level)) = table.get("log_level") {
-            LogLevel::from_str(&level.to_uppercase()).unwrap_or(DefaultConfig::LOG_LEVEL)
-        } else {
-            DefaultConfig::LOG_LEVEL
-        }
-    } else {
-        DefaultConfig::LOG_LEVEL
+    let worker = match katana.get("worker") {
+        Some(TomlValue::Integer(w)) => *w as i32,
+        _ => default_config.worker,
+    };
+
+    let log_level = match katana.get("log_level") {
+        Some(TomlValue::String(level)) => LogLevel::from_str(&level.to_uppercase()).unwrap_or(default_config.log_level),
+        _ => default_config.log_level,
     };
 
     Config {
