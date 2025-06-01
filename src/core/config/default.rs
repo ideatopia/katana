@@ -29,3 +29,7 @@ impl DefaultConfig {
         }
     }
 }
+
+pub fn load_default() -> Config {
+    DefaultConfig::as_config()
+}

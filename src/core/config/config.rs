@@ -28,7 +28,7 @@ impl Config {
             Self::load_args(),
         ];
 
-        let config = configs.into_iter().fold(Config::default(), |acc, curr| {
+        let config = configs.into_iter().fold(Self::default(), |acc, curr| {
             Config {
                 _source: curr._source,
                 host: if curr.host.is_empty() { acc.host } else { curr.host },
@@ -50,7 +50,7 @@ impl Config {
     }
 
     fn default() -> Self {
-        super::default::DefaultConfig::as_config()
+        super::default::load_default()
     }
 
     pub fn load_args() -> Self {
