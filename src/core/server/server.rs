@@ -76,7 +76,7 @@ impl Server {
 
     pub fn handle_response(&self, request: Request, mut stream: &mut TcpStream) {
         if let Some(mut response) = Response::new(request, self.templates.to_owned()) {
-            response.serve(&self.config.root_dir);
+            response.serve(&self.config.document_root);
             self.method_handle(&mut response);
             self.server_transformation(&mut response);
 

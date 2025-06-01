@@ -1,11 +1,20 @@
 use std::path::PathBuf;
-use crate::core::utils::logger::LogLevel;
+use crate::core::utils::logger::{Logger, LogLevel};
+
+#[derive(Clone, Debug)]
+pub enum ConfigSource {
+    Default,
+    File,
+    Env,
+    Args,
+}
 
 #[derive(Debug, Clone)]
 pub struct Config {
+    pub _source: ConfigSource,
     pub host: String,
     pub port: u16,
-    pub root_dir: PathBuf,
+    pub document_root: PathBuf,
     pub worker: i32,
     pub log_level: LogLevel,
 }
@@ -19,19 +28,29 @@ impl Config {
             Self::load_args(),
         ];
 
-        configs.into_iter().fold(Config::default(), |acc, curr| {
+        let config = configs.into_iter().fold(Self::default(), |acc, curr| {
             Config {
+                _source: curr._source,
                 host: if curr.host.is_empty() { acc.host } else { curr.host },
                 port: if curr.port == 0 { acc.port } else { curr.port },
-                root_dir: if curr.root_dir.as_os_str().is_empty() { acc.root_dir } else { curr.root_dir },
+                document_root: if curr.document_root.as_os_str().is_empty() { acc.document_root } else { curr.document_root },
                 worker: if curr.worker <= 0 { acc.worker } else { curr.worker },
                 log_level: curr.log_level,
             }
-        })
+        });
+
+        Logger::debug(
+            format!(
+                "[Config] Configuration from {:?}: host={:?}, port={:?}, root_dir={:?}, worker={:?}, log_level={:?}",
+                config._source, config.host, config.port, config.document_root, config.worker, config.log_level
+            ).as_str(),
+        );
+
+        config
     }
 
     fn default() -> Self {
-        super::default::DefaultConfig::as_config()
+        super::default::load_default()
     }
 
     pub fn load_args() -> Self {

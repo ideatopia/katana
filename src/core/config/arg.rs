@@ -11,7 +11,7 @@ pub fn load_args() -> Config {
 pub fn parse_args(args: Vec<String>) -> Config {
     let mut host = None;
     let mut port = None;
-    let mut root_dir = None;
+    let mut document_root = None;
     let mut worker = None;
     let mut log_level = None;
 
@@ -24,9 +24,9 @@ pub fn parse_args(args: Vec<String>) -> Config {
                     i += 1;
                 }
             }
-            "--dir" => {
+            "--document-root" => {
                 if i + 1 < args.len() {
-                    root_dir = Some(PathBuf::from(&args[i + 1]));
+                    document_root = Some(PathBuf::from(&args[i + 1]));
                     i += 1;
                 }
             }
@@ -54,9 +54,10 @@ pub fn parse_args(args: Vec<String>) -> Config {
     }
 
     Config {
+        _source: crate::core::config::config::ConfigSource::Args,
         host: host.unwrap_or_default(),
         port: port.unwrap_or_default(),
-        root_dir: root_dir.unwrap_or_default(),
+        document_root: document_root.unwrap_or_default(),
         worker: worker.unwrap_or_default(),
         log_level: log_level.unwrap_or(LogLevel::INFO),
     }
