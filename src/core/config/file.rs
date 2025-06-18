@@ -1,3 +1,4 @@
+use std::fmt::format;
 use std::fs;
 use std::path::PathBuf;
 use crate::core::config::config::Config;
@@ -15,8 +16,9 @@ pub fn load_file() -> Config {
     let default_config = load_default();
 
     if !katana_file_path.exists() {
-        println!("{:?}", katana_file_path);
-        Logger::warn("[Config:File] No .katana file found in the root directory");
+        Logger::debug(
+            format!("[Config:File] .katana file not found at {:?}.", katana_file_path).as_str(),
+        );
         return default_config;
     }
 
