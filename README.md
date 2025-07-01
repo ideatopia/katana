@@ -15,15 +15,15 @@ A lightweight web server written in Rust, designed for serving static content wi
 
 ## Quick Start
 
-### Running from Source
+You can install Katana in several ways:
 
-1. Clone the repository
-2. Build and run:
+### 🔧 With Cargo (requires Rust)
+
 ```bash
-cargo run
-```
+cargo install --git https://github.com/ideatopia/katana
+````
 
-### Using Docker
+### 🐳 With Docker
 
 ```bash
 docker build -t katana .
@@ -34,14 +34,20 @@ docker run -p 8080:8080 katana
 
 Katana can be configured using command-line arguments:
 
-- `--host`: Host address (default: 127.0.0.1 on Windows, 0.0.0.0 on others)
-- `--port`: Port number (default: 8080)
-- `--dir`: Root directory for serving files (default: "public")
-- `--worker`: Number of workers (default: 4, minimum: 1)
+### Common options:
+
+| Flag             | Description                                 | Default       |
+|------------------|---------------------------------------------|---------------|
+| `--host`         | Bind address (e.g. `127.0.0.1`, `0.0.0.0`)  | `0.0.0.0`     |
+| `--port`         | Port number to serve on                     | `8080`        |
+| `--document-root`| Folder to serve                             | `./public`    |
+| `--worker`       | Number of worker threads                    | `4`           |
+| `--log-level`    | Log level: `DEBUG`, `INFO`, `WARN`, `ERROR` | `INFO`        |
+
 
 Example:
 ```bash
-katana --host 0.0.0.0 --port 3000 --dir ./static --worker 8
+katana --host 0.0.0.0 --port 8000 --document-root ./static --worker 8
 ```
 
 ## License
