@@ -1,18 +1,10 @@
-use crate::config::Config;
-use crate::logger::Logger;
-use crate::server::Server;
-use crate::templates::{Templates, TemplatesPage};
-use std::collections::HashMap;
+pub mod core;
 
-pub mod config;
-pub mod filetype;
-pub mod http;
-pub mod logger;
-pub mod request;
-pub mod response;
-pub mod server;
-pub mod templates;
-pub mod utils;
+use std::collections::HashMap;
+use crate::core::config::config::Config;
+use crate::core::server::server::Server;
+use crate::core::resources::templates::{Templates, TemplatesPage};
+use crate::core::utils::logger::Logger;
 
 pub struct Katana {
     pub config: Config,
@@ -28,7 +20,7 @@ impl Default for Katana {
 impl Katana {
     pub fn new() -> Self {
         Self {
-            config: Config::load_args(),
+            config: Config::load(),
             templates: Templates::load(),
         }
     }
@@ -36,9 +28,7 @@ impl Katana {
     pub fn start(&self) {
         self.show_banner();
         let server = Server::new(self.config.to_owned(), self.templates.to_owned());
-        Logger::info(
-            format!("Server starting on {}", server.addr_with_protocol()).as_str(),
-        );
+        Logger::info(format!("Server starting on {}", server.addr_with_protocol()).as_str());
         server.serve();
     }
 

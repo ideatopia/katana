@@ -6,13 +6,13 @@ mod tests {
     use std::path::PathBuf;
 
     fn get_host() -> String {
-        let host = if cfg!(target_family = "windows") {
+        
+
+        if cfg!(target_family = "windows") {
             "127.0.0.1".to_string()
         } else {
             "0.0.0.0".to_string()
-        };
-
-        host
+        }
     }
 
     /// Test case for when no arguments are passed.
@@ -27,7 +27,7 @@ mod tests {
 
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080);
-        assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.document_root, PathBuf::from("public"));
         assert_eq!(config.worker, 4);
     }
 
@@ -43,7 +43,7 @@ mod tests {
 
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080); // Default port
-        assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.document_root, PathBuf::from("public"));
         assert_eq!(config.worker, 4);
     }
 
@@ -55,7 +55,7 @@ mod tests {
 
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080); // Default port
-        assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.document_root, PathBuf::from("public"));
         assert_eq!(config.worker, 4);
     }
 
@@ -68,7 +68,7 @@ mod tests {
 
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 8080);
-        assert_eq!(config.root_dir, PathBuf::from("a".repeat(300)));
+        assert_eq!(config.document_root, PathBuf::from("a".repeat(300)));
         assert_eq!(config.worker, 4);
     }
 
@@ -84,7 +84,7 @@ mod tests {
 
         assert_eq!(config.host, "256.256.256.256"); // Host accepts any string, no validation
         assert_eq!(config.port, 8080);
-        assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.document_root, PathBuf::from("public"));
         assert_eq!(config.worker, 4);
     }
 
@@ -100,7 +100,7 @@ mod tests {
 
         assert_eq!(config.host, get_host()); // Default should still be used
         assert_eq!(config.port, 8080); // Default should still be used
-        assert_eq!(config.root_dir, PathBuf::from("public")); // Default should still be used
+        assert_eq!(config.document_root, PathBuf::from("public")); // Default should still be used
         assert_eq!(config.worker, 4);
     }
 
@@ -118,7 +118,7 @@ mod tests {
 
         assert_eq!(config.host, get_host());
         assert_eq!(config.port, 5000); // Last port specified should be used
-        assert_eq!(config.root_dir, PathBuf::from("public"));
+        assert_eq!(config.document_root, PathBuf::from("public"));
         assert_eq!(config.worker, 4);
     }
 

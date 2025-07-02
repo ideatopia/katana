@@ -1,0 +1,8 @@
+# Ignore everything in this directory
+*
+
+# Except the .dev directory itself
+!.dev/
+
+# Except the .gitignore file
+!.gitignore
