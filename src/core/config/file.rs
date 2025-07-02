@@ -1,4 +1,3 @@
-use std::fmt::format;
 use std::fs;
 use std::path::PathBuf;
 use crate::core::config::config::Config;
