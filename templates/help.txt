@@ -1,0 +1,13 @@
+
+Author: {{author}}
+
+Usage:
+{{binary_name}} [OPTIONS]
+
+Options:
+  --help                  Show this help message and exit
+  --port <PORT>           Set the port to listen on (default: 8080)
+  --document-root <PATH>  Set the document root directory (default: ./public)
+  --host <HOST>           Set the host to bind to (default: 8080)
+  --worker <NUM>          Set the number of worker threads (default: 4)
+  --log-level <LEVEL>     Set the log level (DEBUG, INFO, WARN, ERROR) (default: INFO)
