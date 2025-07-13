@@ -5,7 +5,7 @@ Usage:
 {{binary_name}} [OPTIONS]
 
 Options:
-  --help                  Show this help message and exit
+  --help | -h             Show this help message and exit
   --port <PORT>           Set the port to listen on (default: 8080)
   --document-root <PATH>  Set the document root directory (default: ./public)
   --host <HOST>           Set the host to bind to (default: 8080)
