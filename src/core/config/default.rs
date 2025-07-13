@@ -14,6 +14,7 @@ impl DefaultConfig {
 
     pub fn as_config() -> Config {
         Config {
+            _display_help: false,
             _source: crate::core::config::config::ConfigSource::Default,
             host: None::<String>.unwrap_or_else(|| {
                 if cfg!(target_family = "windows") {

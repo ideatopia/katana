@@ -25,6 +25,7 @@ pub fn load_env() -> Config {
         .and_then(|l| LogLevel::from_str(&l.to_uppercase()));
 
     Config {
+        _display_help: false,
         _source: crate::core::config::config::ConfigSource::Env,
         host: host.unwrap_or_default(),
         port: port.unwrap_or_default(),

@@ -11,6 +11,7 @@ pub enum ConfigSource {
 
 #[derive(Debug, Clone)]
 pub struct Config {
+    pub _display_help: bool,
     pub _source: ConfigSource,
     pub host: String,
     pub port: u16,
@@ -30,6 +31,7 @@ impl Config {
 
         let config = configs.into_iter().fold(Self::default(), |acc, curr| {
             Config {
+                _display_help: acc._display_help || curr._display_help,
                 _source: curr._source,
                 host: if curr.host.is_empty() { acc.host } else { curr.host },
                 port: if curr.port == 0 { acc.port } else { curr.port },

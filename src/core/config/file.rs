@@ -60,6 +60,7 @@ pub fn load_file() -> Config {
     };
 
     Config {
+        _display_help: false,
         _source: crate::core::config::config::ConfigSource::File,
         host,
         port,

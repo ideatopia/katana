@@ -9,6 +9,7 @@ pub fn load_args() -> Config {
 }
 
 pub fn parse_args(args: Vec<String>) -> Config {
+    let mut _display_help = false;
     let mut host = None;
     let mut port = None;
     let mut document_root = None;
@@ -18,6 +19,9 @@ pub fn parse_args(args: Vec<String>) -> Config {
     let mut i = 1;
     while i < args.len() {
         match args[i].as_str() {
+            "--help" | "-h" => {
+                _display_help = true;
+            }
             "--port" => {
                 if i + 1 < args.len() {
                     port = args[i + 1].parse().ok();
@@ -54,6 +58,7 @@ pub fn parse_args(args: Vec<String>) -> Config {
     }
 
     Config {
+        _display_help,
         _source: crate::core::config::config::ConfigSource::Args,
         host: host.unwrap_or_default(),
         port: port.unwrap_or_default(),
