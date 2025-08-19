@@ -30,7 +30,13 @@ impl Server {
 
     pub fn serve(&self) {
         Logger::debug(format!("[Server] Starting {} on {}", Self::version(), self.addr()).as_str());
-        let listener = TcpListener::bind(self.addr().as_str()).unwrap();
+        let listener = match TcpListener::bind(self.addr().as_str()) {
+            Ok(listener) => listener,
+            Err(e) => {
+                Logger::error(format!("[Server] Failed to bind to {}. {}", self.addr(), e).as_str());
+                return;
+            }
+        };
         Logger::debug("[Server] Server is ready to accept connections");
 
         for stream in listener.incoming().flatten() {
