@@ -52,6 +52,8 @@ Katana is a high-performance, minimalist web server built from scratch in Rust. 
 - **Docker Support** - Ready-to-use containerization
 
 ## Installation
+> **Note**:  Before running any **cargo** command, make sure **Rust** and **Cargo** are already installed on your machine.  
+> You can install both by using the official [Rustup installer](https://rustup.rs/)
 
 ### Option 1: Install via Cargo (Recommended)
 
