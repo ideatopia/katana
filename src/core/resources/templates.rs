@@ -6,6 +6,7 @@ pub enum TemplatesPage {
     BANNER,
     ERROR,
     DIRECTORY,
+    HELP,
 }
 
 #[derive(Debug, Clone)]
@@ -13,6 +14,7 @@ pub struct Templates {
     pub banner: String,
     pub error: String,
     pub directory: String,
+    pub help: String,
 }
 
 macro_rules! include_template {
@@ -28,6 +30,7 @@ impl Templates {
             banner: String::from(include_template!("/banner.txt")),
             error: String::from(include_template!("/error.html")),
             directory: String::from(include_template!("/directory.html")),
+            help: String::from(include_template!("/help.txt")),
         };
         Logger::debug("[Templates] Template files loaded successfully");
         templates
@@ -47,6 +50,7 @@ impl Templates {
             TemplatesPage::BANNER => Some(templates.banner),
             TemplatesPage::ERROR => Some(templates.error),
             TemplatesPage::DIRECTORY => Some(templates.directory),
+            TemplatesPage::HELP => Some(templates.help),
         };
 
         if result.is_none() {

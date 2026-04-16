@@ -26,6 +26,7 @@ impl Katana {
     }
 
     pub fn start(&self) {
+        self.display_help_if_needed();
         self.show_banner();
         let server = Server::new(self.config.to_owned(), self.templates.to_owned());
         Logger::info(format!("Server starting on {}", server.addr_with_protocol()).as_str());
@@ -39,5 +40,16 @@ impl Katana {
             format!("{: >1$}", Server::version(), 67),
         );
         println!("{}", self.templates.render(TemplatesPage::BANNER, params));
+    }
+
+    fn display_help_if_needed(&self) {
+        if self.config.display_help {
+            let mut params = HashMap::new();
+            params.insert("author".to_string(), env!("CARGO_PKG_AUTHORS").to_string());
+            params.insert("binary_name".to_string(), env!("CARGO_PKG_NAME").to_string());
+
+            println!("{}", self.templates.render(TemplatesPage::HELP, params));
+            std::process::exit(0);
+        }
     }
 }
